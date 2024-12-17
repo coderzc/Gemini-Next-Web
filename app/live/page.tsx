@@ -86,7 +86,7 @@ const LivePage = () => {
 		setTextInput('');
 	};
 
-	const log = useCallback(({ date, type, message }: StreamingLog) => {
+	const log = useCallback(({ date, type, message, buffer }: StreamingLog) => {
 		setMessages((state) => {
 			const prevLog = state.at(-1);
 			if (
@@ -101,6 +101,7 @@ const LivePage = () => {
 						type,
 						message,
 						count: prevLog.count ? prevLog.count + 1 : 1,
+						buffer,
 					} as StreamingLog,
 				];
 			}
@@ -110,6 +111,7 @@ const LivePage = () => {
 					date,
 					type,
 					message,
+					buffer,
 				} as StreamingLog,
 			];
 		});

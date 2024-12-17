@@ -9,11 +9,16 @@ import {
 	isToolCallMessage,
 	isToolResponseMessage,
 	isToolCallCancellationMessage,
+	isAudioMessage,
 } from '@/vendor/multimodal-live-types';
-import { ReactNode } from 'react';
+import { ReactNode, useEffect, useRef } from 'react';
 import { Bubble } from '@ant-design/x';
 
-import { UserOutlined, RobotOutlined } from '@ant-design/icons';
+import {
+	UserOutlined,
+	RobotOutlined,
+	PlayCircleOutlined,
+} from '@ant-design/icons';
 
 import { Flex } from 'antd';
 
@@ -125,6 +130,43 @@ const ModelTurnLog = ({
 	);
 };
 
+const AudioMessage = ({ buffer }: { buffer?: ArrayBuffer }) => {
+	const audioUrl = useRef<string | null>(null);
+
+	useEffect(() => {
+		if (!buffer) return;
+
+		// 将 ArrayBuffer 转换为 Blob
+		const blob = new Blob([buffer], { type: 'audio/wav' });
+		audioUrl.current = URL.createObjectURL(blob);
+
+		// 组件卸载时清理
+		return () => {
+			if (audioUrl.current) {
+				URL.revokeObjectURL(audioUrl.current);
+				audioUrl.current = null;
+			}
+		};
+	}, [buffer]);
+
+	if (!buffer || !audioUrl.current) return null;
+
+	return (
+		<Bubble
+			placement='start'
+			content={
+				<div>
+					<audio controls src={audioUrl.current} />
+				</div>
+			}
+			avatar={{
+				icon: <RobotOutlined />,
+				style: fooAvatar,
+			}}
+		/>
+	);
+};
+
 const filters: Record<LoggerFilterType, (log: StreamingLog) => boolean> = {
 	tools: (log: StreamingLog) =>
 		isToolCallMessage(log.message) ||
@@ -137,21 +179,12 @@ const filters: Record<LoggerFilterType, (log: StreamingLog) => boolean> = {
 };
 
 const component = (log: StreamingLog) => {
-	// if (typeof log.message === 'string') {
-	// 	return PlainTextMessage;
-	// }
+	if (isAudioMessage(log)) {
+		return AudioMessage;
+	}
 	if (isClientContentMessage(log.message)) {
 		return ClientContentLog;
 	}
-	// if (isToolCallMessage(log.message)) {
-	//   return ToolCallLog;
-	// }
-	// if (isToolCallCancellationMessage(log.message)) {
-	//   return ToolCallCancellationLog;
-	// }
-	// if (isToolResponseMessage(log.message)) {
-	//   return ToolResponseLog;
-	// }
 	if (isServerContenteMessage(log.message)) {
 		const { serverContent } = log.message;
 		if (isModelTurn(serverContent)) {
@@ -171,13 +204,23 @@ const LogEntry = ({
 	MessageComponent: ({
 		message,
 		prevLog,
+		buffer,
 	}: {
 		message: StreamingLog['message'];
 		prevLog?: StreamingLog;
+		buffer?: ArrayBuffer;
 	}) => ReactNode;
-}): JSX.Element => <MessageComponent message={log.message} prevLog={prevLog} />;
+}): JSX.Element => {
+	return (
+		<MessageComponent
+			message={log.message}
+			prevLog={prevLog}
+			buffer={log?.buffer}
+		/>
+	);
+};
 
-const Logger = ({ logs, filter = 'conversations' }: LoggerProps) => {
+const Logger = ({ logs, filter = 'none' }: LoggerProps) => {
 	const filterFn = filters[filter];
 	const filterLogs = logs.filter(filterFn);
 	return (
