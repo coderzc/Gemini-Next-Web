@@ -76,6 +76,14 @@ function MediaButtons({
 	}, [inVolume]);
 
 	useEffect(() => {
+		client.on('close', () => {
+			webcam.stop();
+			screenCapture.stop();
+			audioRecorder.stop();
+		});
+	}, [client]);
+
+	useEffect(() => {
 		const onData = (base64: string) => {
 			client.sendRealtimeInput([
 				{
@@ -135,15 +143,6 @@ function MediaButtons({
 			clearTimeout(timeoutId);
 		};
 	}, [connected, activeVideoStream, client, videoRef]);
-
-	useEffect(() => {
-		if (!connected) {
-			// 当连接断开时停止所有视频流
-			videoStreams.forEach((stream) => stream.stop());
-			setActiveVideoStream(null);
-			onVideoStreamChange(null);
-		}
-	}, [connected, videoStreams, onVideoStreamChange]);
 
 	//handler for swapping from one video-stream to the next
 	const changeStreams = (next?: UseMediaStreamResult) => async () => {
