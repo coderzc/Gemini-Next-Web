@@ -15,6 +15,7 @@ import {
 	Select,
 	Tag,
 	Checkbox,
+	Tooltip,
 } from 'antd';
 import { Sender } from '@ant-design/x';
 import { useLocalStorageState } from 'ahooks';
@@ -149,6 +150,11 @@ const LivePage = () => {
 		border: 'none',
 	};
 
+	const handleDisconnect = () => {
+		setVideoStream(null); // 关闭视频预览
+		disconnect();
+	};
+
 	return (
 		<Layout
 			style={{
@@ -216,47 +222,36 @@ const LivePage = () => {
 							}}
 						>
 							<Logger logs={messages} />
-							{/* <Bubble
-									placement='start'
-									content='Good morning, how are you?'
-									avatar={{
-										icon: <Image src={GeminiIcon} alt={'Model'} />,
-										style: fooAvatar,
-									}}
-								/>
-								<Bubble
-									placement='start'
-									content='What a beautiful day!'
-									styles={{ avatar: hideAvatar }}
-									avatar={{}}
-								/>
-								<Bubble
-									placement='end'
-									content="Hi, good morning, I'm fine!"
-									avatar={{
-										icon: <UserOutlined />,
-										style: barAvatar,
-									}}
-								/>
-								<Bubble
-									placement='end'
-									content='Thank you!'
-									styles={{ avatar: hideAvatar }}
-									avatar={{}}
-								/> */}
 						</div>
 						<Flex justify='center'>
-							<Button
-								type={connected ? 'primary' : 'default'}
-								onClick={connected ? disconnect : connect}
-								icon={
-									connected ? (
-										<PauseCircleTwoTone />
-									) : (
-										<PlayCircleTwoTone />
-									)
+							<Tooltip
+								color='yellow'
+								open={!connected}
+								title={
+									<span
+										style={{
+											fontSize: 18,
+											fontWeight: 500,
+										}}
+									>
+										Connect to server
+									</span>
 								}
-							/>
+							>
+								<Button
+									type={connected ? 'primary' : 'default'}
+									onClick={
+										connected ? handleDisconnect : connect
+									}
+									icon={
+										connected ? (
+											<PauseCircleTwoTone />
+										) : (
+											<PlayCircleTwoTone />
+										)
+									}
+								/>
+							</Tooltip>
 						</Flex>
 						<div
 							className='px-5 py-2'
@@ -272,7 +267,7 @@ const LivePage = () => {
 								prefix={
 									<MediaButtons
 										videoRef={videoRef}
-										supportsVideo={true}
+										supportsVideo
 										onVideoStreamChange={setVideoStream}
 									/>
 								}
