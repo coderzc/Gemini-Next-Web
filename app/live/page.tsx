@@ -1,9 +1,9 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { UserOutlined, PauseCircleOutlined, PlayCircleOutlined, PauseCircleTwoTone, PlayCircleTwoTone } from '@ant-design/icons';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { PauseCircleTwoTone, PlayCircleTwoTone } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
-import { useLiveAPIContext } from "@/vendor/contexts/LiveAPIContext";
-import { StreamingLog } from "@/vendor/multimodal-live-types";
+import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
+import { StreamingLog } from '@/vendor/multimodal-live-types';
 
 import {
 	Button,
@@ -16,25 +16,14 @@ import {
 	Tag,
 	Checkbox,
 } from 'antd';
-import { Sender, Bubble } from '@ant-design/x';
+import { Sender } from '@ant-design/x';
 import { useLocalStorageState } from 'ahooks';
 import FieldItem from '@/components/field-item';
 import GeminiIcon from '@/app/icon/google-gemini-icon.svg';
 import Image from 'next/image';
 
-const fooAvatar: React.CSSProperties = {
-	color: '#f56a00',
-	backgroundColor: '#fde3cf',
-};
+import Logger from '@/components/logger';
 
-const barAvatar: React.CSSProperties = {
-	color: '#fff',
-	backgroundColor: '#87d068',
-};
-
-const hideAvatar: React.CSSProperties = {
-	visibility: 'hidden',
-};
 const { Header, Content } = Layout;
 
 interface ToolsState {
@@ -43,7 +32,6 @@ interface ToolsState {
 	automaticFunctionResponse: boolean;
 	grounding: boolean;
 }
-
 
 const LivePage = () => {
 	const {
@@ -55,27 +43,13 @@ const LivePage = () => {
 		},
 	} = theme.useToken();
 	const videoRef = useRef<HTMLVideoElement>(null);
-    // either the screen capture, the video or null, if null we hide it
-    const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
-	const { client, config, setConfig, connected, connect, disconnect } = useLiveAPIContext();
-	const [textInput, setTextInput] = useState("");
-	const handleSubmit = () => {
-		client.send([{ text: textInput }]);
-		setTextInput("");
-	};
+	// either the screen capture, the video or null, if null we hide it
+	const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
 
-	const log = ({ date, type, message }: StreamingLog) => {
-		console.log('log', date, type, message)
-	}
-	useEffect(() => {
-		client.on("log", log);
-		return () => {
-		  client.off("log", log);
-		};
-	}, [client, log]);
+	const { client, config, setConfig, connected, connect, disconnect } =
+		useLiveAPIContext();
 
-	console.log('video', !connected || !videoRef.current || !videoStream, 'connected', connected, 'videoStream', videoStream)
-    console.log('config', config)
+	const [textInput, setTextInput] = useState('');
 
 	const [prompt, setPrompt] = useLocalStorageState('prompt', {
 		defaultValue: '',
@@ -86,27 +60,9 @@ const LivePage = () => {
 	const [outPut, setOutPut] = useLocalStorageState('output', {
 		defaultValue: 'audio',
 	});
-	const [voice, setVoice] = useLocalStorageState('output', {
+	const [voice, setVoice] = useLocalStorageState('voice', {
 		defaultValue: 'Puck',
 	});
-
-	useEffect(() => {
-		if (!connected) return;
-		const speechConfig = {
-			voiceConfig: {
-				prebuiltVoiceConfig: {
-					voiceName: voice
-				}
-			},
-		}
-		const generationConfig = {
-			...config?.generationConfig,
-			speechConfig,
-			responseModalities: outPut
-	    } as any
-		const systemInstruction = prompt ? { parts: [{ text: prompt }] } : undefined
-		setConfig({ ...config, generationConfig, systemInstruction })
-	}, [connected, prompt, model, outPut, voice])
 
 	const [tools, setTools] = useLocalStorageState<ToolsState>('tools', {
 		defaultValue: {
@@ -122,6 +78,69 @@ const LivePage = () => {
 	>('tools-pane-active', {
 		defaultValue: [],
 	});
+
+	const [messages, setMessages] = useState<StreamingLog[]>([]);
+
+	const handleSubmit = () => {
+		client.send([{ text: textInput }]);
+		setTextInput('');
+	};
+
+	const log = useCallback(({ date, type, message }: StreamingLog) => {
+		setMessages((state) => {
+			const prevLog = state.at(-1);
+			if (
+				prevLog &&
+				prevLog.type === type &&
+				prevLog.message === message
+			) {
+				return [
+					...state.slice(0, -1),
+					{
+						date,
+						type,
+						message,
+						count: prevLog.count ? prevLog.count + 1 : 1,
+					} as StreamingLog,
+				];
+			}
+			return [
+				...state,
+				{
+					date,
+					type,
+					message,
+				} as StreamingLog,
+			];
+		});
+	}, []);
+
+	useEffect(() => {
+		client.on('log', log);
+		return () => {
+			client.off('log', log);
+		};
+	}, [client, log]);
+
+	useEffect(() => {
+		// if (!connected) return;
+		const speechConfig = {
+			voiceConfig: {
+				prebuiltVoiceConfig: {
+					voiceName: voice,
+				},
+			},
+		};
+		const generationConfig = {
+			...config?.generationConfig,
+			speechConfig,
+			responseModalities: outPut,
+		} as typeof config.generationConfig;
+		const systemInstruction = prompt
+			? { parts: [{ text: prompt }] }
+			: undefined;
+		setConfig({ ...config, generationConfig, systemInstruction });
+	}, [connected, prompt, model, outPut, voice]);
 
 	const panelStyle: React.CSSProperties = {
 		background: colorFillAlter,
@@ -150,7 +169,7 @@ const LivePage = () => {
 				style={{
 					height: '100%',
 					background: colorBgContainer,
-					borderRadius: 20
+					borderRadius: 20,
 				}}
 			>
 				<Flex style={{ height: '100%' }}>
@@ -160,7 +179,7 @@ const LivePage = () => {
 						style={{
 							borderRadius: 20,
 							background: '#fff',
-							position: 'relative'
+							position: 'relative',
 						}}
 					>
 						<div className='px-5 py-2'>
@@ -170,9 +189,15 @@ const LivePage = () => {
 								items={[
 									{
 										key: 'prompts',
-										label: 'Prompts',
+										label: 'System Instructions',
 										children: (
-											<Input placeholder='Enter your prompt here' />
+											<Input
+												onChange={(e) =>
+													setPrompt(e.target.value)
+												}
+												value={prompt}
+												placeholder='Optional tone and style instructions for the model'
+											/>
 										),
 										style: panelStyle,
 									},
@@ -189,8 +214,8 @@ const LivePage = () => {
 								borderRadius: 20,
 							}}
 						>
-							<Flex gap='middle' vertical>
-								<Bubble
+							<Logger logs={messages} />
+							{/* <Bubble
 									placement='start'
 									content='Good morning, how are you?'
 									avatar={{
@@ -217,27 +242,31 @@ const LivePage = () => {
 									content='Thank you!'
 									styles={{ avatar: hideAvatar }}
 									avatar={{}}
-								/>
-							</Flex>
+								/> */}
 						</div>
 						<Flex justify='center'>
 							<Button
-								type={ connected ? 'primary': 'default' }
+								type={connected ? 'primary' : 'default'}
 								onClick={connected ? disconnect : connect}
-								icon={connected? <PauseCircleTwoTone /> : <PlayCircleTwoTone /> }
+								icon={
+									connected ? (
+										<PauseCircleTwoTone />
+									) : (
+										<PlayCircleTwoTone />
+									)
+								}
 							/>
 						</Flex>
-						<div className='px-5 py-2' style={{ pointerEvents: !connected ? 'none' as any : ''}}>
+						<div
+							className='px-5 py-2'
+							style={{
+								pointerEvents: !connected ? 'none' : 'auto',
+							}}
+						>
 							<Sender
+								onChange={setTextInput}
 								onSubmit={handleSubmit}
 								value={textInput}
-								onKeyDown={(e) => {
-								if (e.key === "Enter" && !e.shiftKey) {
-									e.preventDefault();
-									e.stopPropagation();
-									handleSubmit();
-								}
-								}}
 								disabled={!connected}
 								prefix={
 									<MediaButtons
@@ -247,27 +276,29 @@ const LivePage = () => {
 									/>
 								}
 							/>
-							{videoStream ? <video
-								style={{
-									position: 'absolute',
-									top: 70,
-									right: 20,
-									maxWidth: 300,
-									borderRadius: 10,
-									border: '1px solid #333',
-									display: !videoStream ? 'none': 'auto'
-								}}
-								ref={videoRef}
-								autoPlay
-								playsInline
-							/> : null}
+							{videoStream ? (
+								<video
+									style={{
+										position: 'absolute',
+										top: 70,
+										right: 20,
+										maxWidth: 300,
+										borderRadius: 10,
+										border: '1px solid #333',
+										display: !videoStream ? 'none' : 'auto',
+									}}
+									ref={videoRef}
+									autoPlay
+									playsInline
+								/>
+							) : null}
 						</div>
 					</Flex>
 					<Flex
 						vertical
 						gap={32}
 						style={{
-							width: 250, // 修改为标准的 Sider 宽度
+							width: 250,
 							padding: '10px',
 							overflowY: 'auto',
 							background: colorBgLayout,
