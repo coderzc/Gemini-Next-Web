@@ -60,6 +60,14 @@ function MediaButtons({
   }, [inVolume]);
 
   useEffect(() => {
+    client.on('close', () => {
+      webcam.stop();
+      screenCapture.stop();
+      audioRecorder.stop();
+    })
+  }, [client])
+
+  useEffect(() => {
     const onData = (base64: string) => {
       client.sendRealtimeInput([
         {
