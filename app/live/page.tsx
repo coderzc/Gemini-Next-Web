@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { PauseCircleTwoTone, PlayCircleTwoTone } from '@ant-design/icons';
+import { PauseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
 import { StreamingLog } from '@/vendor/multimodal-live-types';
@@ -224,34 +224,20 @@ const LivePage = () => {
 							<Logger logs={messages} />
 						</div>
 						<Flex justify='center'>
-							<Tooltip
-								color='yellow'
-								open={!connected}
-								title={
-									<span
-										style={{
-											fontSize: 18,
-											fontWeight: 500,
-										}}
-									>
-										Connect to server
-									</span>
+							<Button
+								color='primary'
+								variant={connected ? 'outlined' : 'solid'}
+								onClick={connected ? handleDisconnect : connect}
+								icon={
+									connected ? (
+										<PauseCircleOutlined />
+									) : (
+										<PoweroffOutlined />
+									)
 								}
 							>
-								<Button
-									type={connected ? 'primary' : 'default'}
-									onClick={
-										connected ? handleDisconnect : connect
-									}
-									icon={
-										connected ? (
-											<PauseCircleTwoTone />
-										) : (
-											<PlayCircleTwoTone />
-										)
-									}
-								/>
-							</Tooltip>
+								Click me !
+							</Button>
 						</Flex>
 						<div
 							className='px-5 py-2'
