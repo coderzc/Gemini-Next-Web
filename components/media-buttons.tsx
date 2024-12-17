@@ -63,7 +63,7 @@ function MediaButtons({
 	const [webcam, screenCapture] = videoStreams;
 	const [inVolume, setInVolume] = useState(0);
 	const [audioRecorder] = useState(() => new AudioRecorder());
-	const [muted, setMuted] = useState(false);
+	const [muted, setMuted] = useState(true); // 设置初始状态为静音
 	const renderCanvasRef = useRef<HTMLCanvasElement>(null);
 
 	const { client, connected } = useLiveAPIContext();
@@ -76,12 +76,22 @@ function MediaButtons({
 	}, [inVolume]);
 
 	useEffect(() => {
-		client.on('close', () => {
+		const resetState = () => {
 			webcam.stop();
 			screenCapture.stop();
 			audioRecorder.stop();
-		});
-	}, [client]);
+			setMuted(true);
+			setActiveVideoStream(null);
+			onVideoStreamChange(null);
+			setInVolume(0);
+		};
+
+		client.on('close', resetState);
+
+		return () => {
+			client.off('close', resetState);
+		};
+	}, [client, webcam, screenCapture, audioRecorder, onVideoStreamChange]);
 
 	useEffect(() => {
 		const onData = (base64: string) => {
@@ -146,6 +156,8 @@ function MediaButtons({
 
 	//handler for swapping from one video-stream to the next
 	const changeStreams = (next?: UseMediaStreamResult) => async () => {
+		if (!connected) return;
+
 		if (next) {
 			const mediaStream = await next.start();
 			setActiveVideoStream(mediaStream);
@@ -163,7 +175,7 @@ function MediaButtons({
 			<canvas style={{ display: 'none' }} ref={renderCanvasRef} />
 			<div>
 				<Button
-					type={connected ? 'primary' : 'default'}
+					type={!muted && connected ? 'primary' : 'default'}
 					shape='circle'
 					icon={!muted ? <AudioOutlined /> : <AudioMutedOutlined />}
 					onClick={() => setMuted(!muted)}
