@@ -11,6 +11,7 @@ import {
 	isToolCallCancellationMessage,
 	isAudioMessage,
 } from '@/vendor/multimodal-live-types';
+import { pcmBufferToBlob } from '@/vendor/lib/utils';
 import { ReactNode, useEffect, useRef } from 'react';
 import { Bubble } from '@ant-design/x';
 
@@ -137,7 +138,7 @@ const AudioMessage = ({ buffer }: { buffer?: ArrayBuffer }) => {
 		if (!buffer) return;
 
 		// 将 ArrayBuffer 转换为 Blob
-		const blob = new Blob([buffer], { type: 'audio/wav' });
+		const blob = pcmBufferToBlob(buffer)
 		audioUrl.current = URL.createObjectURL(blob);
 
 		// 组件卸载时清理
