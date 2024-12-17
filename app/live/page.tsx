@@ -236,7 +236,9 @@ const LivePage = () => {
 									)
 								}
 							>
-								Click me !
+								{connected
+									? 'Disconnect'
+									: 'Click me to start !'}
 							</Button>
 						</Flex>
 						<div
