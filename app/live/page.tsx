@@ -15,7 +15,6 @@ import {
 	Select,
 	Tag,
 	Checkbox,
-	Tooltip,
 } from 'antd';
 import { Sender } from '@ant-design/x';
 import { useLocalStorageState } from 'ahooks';
