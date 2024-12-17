@@ -1,4 +1,3 @@
-
 import { memo, ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import { useLiveAPIContext } from "@/vendor/contexts/LiveAPIContext";
 import { UseMediaStreamResult } from "@/vendor/hooks/use-media-stream-mux";
@@ -18,10 +17,10 @@ export type MediaButtonsProps = {
 
 type MediaStreamButtonProps = {
   isStreaming: boolean;
-  onIcon: any;
-  offIcon: any;
-  start: () => Promise<any>;
-  stop: () => any;
+  onIcon: React.ReactNode;
+  offIcon: React.ReactNode;
+  start: () => Promise<void>;
+  stop: () => void;
 };
 
 /**
@@ -51,8 +50,7 @@ function MediaButtons({
   const [muted, setMuted] = useState(false);
   const renderCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  const { client, connected, connect, disconnect, volume } =
-    useLiveAPIContext();
+  const { client, connected } = useLiveAPIContext();
 
   useEffect(() => {
     document.documentElement.style.setProperty(

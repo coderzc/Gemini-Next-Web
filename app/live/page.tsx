@@ -140,6 +140,7 @@ const LivePage = () => {
 			? { parts: [{ text: prompt }] }
 			: undefined;
 		setConfig({ ...config, generationConfig, systemInstruction });
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [connected, prompt, model, outPut, voice]);
 
 	const panelStyle: React.CSSProperties = {
@@ -219,7 +220,7 @@ const LivePage = () => {
 									placement='start'
 									content='Good morning, how are you?'
 									avatar={{
-										icon: <UserOutlined />,
+										icon: <Image src={GeminiIcon} alt={'Model'} />,
 										style: fooAvatar,
 									}}
 								/>

@@ -34,6 +34,7 @@
 		"@ant-design/nextjs-registry": "^1.0.2",
 		"@ant-design/x": "^1.0.2",
 		"@google/generative-ai": "^0.21.0",
+		"@types/lodash": "^4.17.13",
 		"ahooks": "^3.8.4",
 		"antd": "^5.22.5",
 		"clsx": "^2.1.1",
