@@ -4,6 +4,7 @@ import { PauseCircleTwoTone, PlayCircleTwoTone } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
 import { StreamingLog } from '@/vendor/multimodal-live-types';
+import { pcmBufferToBlob } from '@/vendor/lib/utils';
 
 import {
 	Button,
@@ -118,11 +119,47 @@ const LivePage = () => {
 	}, []);
 
 	useEffect(() => {
-		client.on('log', log);
+		let parts: any[] = []; // 这里先保存文本
+		let buffers: ArrayBuffer[] = []; // 保存语音
+		const onAudio = (data: ArrayBuffer) => {
+			console.log('onAudio', data)
+			buffers.push(data)
+		}
+		const onContent = (content: any) => {
+			console.log('onContent', content)
+			parts.push(...content.modelTurn.parts)
+		}
+		const onInterrupted = () => {
+			console.log('onInterrupted')
+			if (buffers.length) {
+				new Blob(buffers).arrayBuffer().then((buffer: ArrayBuffer) => {
+					const blob = pcmBufferToBlob(buffer);
+					const audioUrl = URL.createObjectURL(blob);
+					const message = { audioUrl }
+					setMessages((state: any) => {
+						return [...state, message]
+					})
+				})
+			}
+		}
+		const onTurnComplete = () => {
+			console.log('onTurnComplete')
+			if (parts.length) {
+				const message = { parts }
+				parts = []
+				console.log('new message', message)
+				setMessages((state: any) => {
+					return [...state, message]
+				})
+			}
+		}
+		client.on('audio', onAudio).on('content', onContent)
+			.on('interrupted', onInterrupted).on('turncomplete', onTurnComplete);
 		return () => {
-			client.off('log', log);
+			client.off('audio', onAudio).off('content', onContent)
+			.off('interrupted', onInterrupted).off('turncomplete', onTurnComplete);
 		};
-	}, [client, log]);
+	}, [client]);
 
 	useEffect(() => {
 		// if (!connected) return;
