@@ -17,3 +17,17 @@
 ![cover](https://github.com/user-attachments/assets/0dc224c0-52dd-4b40-bd08-8c744b267803)
 
 </div>
+
+## 开始项目
+
+首先，在`.env`文件中填写`NEXT_GEMINI_API_KEY`并且启动项目
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
