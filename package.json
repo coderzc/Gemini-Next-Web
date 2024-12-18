@@ -33,6 +33,7 @@
 		"@ant-design/icons": "^5.5.2",
 		"@ant-design/nextjs-registry": "^1.0.2",
 		"@ant-design/x": "^1.0.2",
+		"@antv/gpt-vis": "^0.3.4",
 		"@google/generative-ai": "^0.21.0",
 		"@types/lodash": "^4.17.13",
 		"ahooks": "^3.8.4",

@@ -27,6 +27,7 @@ import { useLocalStorageState } from 'ahooks';
 import FieldItem from '@/components/field-item';
 import GeminiIcon from '@/app/icon/google-gemini-icon.svg';
 import Image from 'next/image';
+import { GPTVis } from '@antv/gpt-vis';
 
 const { Header, Content } = Layout;
 
@@ -57,14 +58,15 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 	const textComponent = useMemo(() => {
 		// @ts-ignore
 		if (message?.clientContent) {
+			// @ts-ignore
+			const content = message?.clientContent.turns?.[0]?.parts
+				.map((p) => p.text)
+				.join('');
 			return (
 				<Bubble
 					key={message?.id}
 					placement='end'
-					// @ts-ignore
-					content={message?.clientContent.turns?.[0]?.parts
-						.map((p) => p.text)
-						.join('')}
+					content={<GPTVis>{content}</GPTVis>}
 					typing={{ step: 2, interval: 50 }}
 					avatar={{
 						icon: <UserOutlined />,
@@ -83,7 +85,7 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 				<Bubble
 					key={message?.id}
 					placement='start'
-					content={content}
+					content={<GPTVis>{content}</GPTVis>}
 					typing={{ step: 10, interval: 50 }}
 					avatar={{
 						icon: <RobotOutlined />,
@@ -115,12 +117,23 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 						placement='start'
 						content={
 							<div>
-								<audio controls src={audioUrl}></audio>
+								<audio
+									style={{
+										height: 30,
+									}}
+									controls
+									src={audioUrl}
+								></audio>
 							</div>
 						}
 						avatar={{
 							icon: <RobotOutlined />,
 							style: barAvatar,
+						}}
+						styles={{
+							content: {
+								padding: 8,
+							},
 						}}
 					/>
 				);
