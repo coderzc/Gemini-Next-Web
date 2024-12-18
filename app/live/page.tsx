@@ -79,7 +79,7 @@ const MessageItem: React.FC<{ message: MessageType }> = ({ message }) => {
 			const content = message.clientContent.turns?.[0]?.parts
 				.map((p) => p.text)
 				.join('');
-			return (
+			return content ? (
 				<Bubble
 					key={message.id}
 					placement='end'
@@ -90,14 +90,14 @@ const MessageItem: React.FC<{ message: MessageType }> = ({ message }) => {
 						style: fooAvatar,
 					}}
 				/>
-			);
+			) : null;
 		}
 
 		if (isServerMessage(message) && hasModelTurn(message.serverContent)) {
 			const content = message.serverContent.modelTurn.parts
 				.map((p) => p?.text ?? '')
 				.join('');
-			return (
+			return content ? (
 				<Bubble
 					key={message.id}
 					placement='start'
@@ -108,7 +108,7 @@ const MessageItem: React.FC<{ message: MessageType }> = ({ message }) => {
 						style: barAvatar,
 					}}
 				/>
-			);
+			) : null;
 		}
 		return null;
 	}, [message]);

@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { AudioOutlined, LeftOutlined } from '@ant-design/icons';
+import { AudioOutlined, LeftOutlined, GithubOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { Layout, Menu, theme, ConfigProvider } from 'antd';
+import { Layout, Menu, theme, ConfigProvider, Flex } from 'antd';
 import clsx from 'clsx';
 import { useRouter, usePathname } from 'next/navigation';
 import LiveAPIProvider from '@/components/live-api-provider';
@@ -29,6 +29,8 @@ const items: MenuItem[] = [
 	getItem('Stream Realtime', '/live', <AudioOutlined />),
 ];
 
+const subItems: MenuItem[] = [getItem('Github', '/github', <GithubOutlined />)];
+
 const GlobalLayout: React.FC<{
 	children: React.ReactNode;
 }> = ({ children }) => {
@@ -52,6 +54,15 @@ const GlobalLayout: React.FC<{
 		router.push(e.key);
 	};
 
+	const handleSubMenuClick: MenuProps['onClick'] = (e) => {
+		if (e.key === '/github') {
+			window.open(
+				'https://github.com/ElricLiu/Gemini-Next-Web',
+				'_blank'
+			);
+		}
+	};
+
 	return (
 		<ConfigProvider
 			theme={{
@@ -65,7 +76,13 @@ const GlobalLayout: React.FC<{
 					collapsible
 					collapsed={collapsed}
 					onCollapse={(value) => setCollapsed(value)}
-					style={{ background: colorBgLayout, padding: '0 10px' }}
+					style={{
+						background: colorBgLayout,
+						padding: '0 10px',
+						height: '100vh',
+						display: 'flex',
+						flexDirection: 'column',
+					}}
 				>
 					<div
 						className='h-8 m-4 rounded-lg text-lg font-medium text-center overflow-hidden relative'
@@ -80,7 +97,7 @@ const GlobalLayout: React.FC<{
 								}
 							)}
 						>
-							Google AI Studio
+							Gemini-Next-Web
 						</div>
 						<div
 							className={clsx(
@@ -117,29 +134,53 @@ const GlobalLayout: React.FC<{
 							</svg>
 						</div>
 					</div>
-					<Menu
-						mode='inline'
-						items={items}
-						onClick={handleMenuClick}
-						selectedKeys={[pathname]}
+					<Flex
+						vertical
+						justify='space-between'
 						style={{
-							background: colorBgLayout,
-							borderInlineEnd: 'none',
-						}}
-					/>
-					<div
-						onClick={() => setCollapsed(!collapsed)}
-						className='ant-layout-sider-trigger'
-						style={{
-							width: collapsed ? 60 : 230,
-							color: '#000',
-							background: colorBgLayout,
-							padding: '0 10px',
-							boxSizing: 'border-box',
+							flex: 1,
+							height: 'calc(100vh - 64px)',
 						}}
 					>
-						<LeftOutlined rotate={collapsed ? 180 : 0} />
-					</div>
+						<Menu
+							mode='inline'
+							items={items}
+							onClick={handleMenuClick}
+							selectedKeys={[pathname]}
+							style={{
+								background: colorBgLayout,
+								borderInlineEnd: 'none',
+							}}
+						/>
+						<div>
+							<Menu
+								mode='inline'
+								items={subItems}
+								onClick={handleSubMenuClick}
+								style={{
+									background: colorBgLayout,
+									borderInlineEnd: 'none',
+								}}
+							/>
+							<div
+								onClick={() => setCollapsed(!collapsed)}
+								style={{
+									width: collapsed ? 60 : 230,
+									color: '#000',
+									background: colorBgLayout,
+									padding: '0 10px',
+									boxSizing: 'border-box',
+									textAlign: 'center',
+									cursor: 'pointer',
+									transition: 'all 0.2s',
+									height: 48,
+									lineHeight: '48px',
+								}}
+							>
+								<LeftOutlined rotate={collapsed ? 180 : 0} />
+							</div>
+						</div>
+					</Flex>
 				</Sider>
 				<LiveAPIProvider>{children}</LiveAPIProvider>
 			</Layout>
