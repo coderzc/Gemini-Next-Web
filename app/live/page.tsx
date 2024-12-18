@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { UserOutlined, RobotOutlined } from '@ant-design/icons';
 import { PauseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
@@ -42,6 +42,76 @@ const barAvatar: React.CSSProperties = {
 	color: '#fff',
 	backgroundColor: '#1677ff',
 };
+
+
+type MessgeType = RealtimeInputMessage | ClientContentMessage | ServerContentMessage | null
+
+
+const MessageItem = ({message}: {message: MessgeType}) => {
+
+    const textComponent = useMemo(() => {
+		// @ts-ignore
+        if (message?.clientContent){
+            return <Bubble
+                key={message?.id}
+            	placement='end'
+            	// @ts-ignore
+            	content={message?.clientContent.turns?.[0]?.parts.map(p => p.text).join('')}
+            	typing={{ step: 2, interval: 50 }}
+            	avatar={{
+            		icon: <UserOutlined />,
+            		style: fooAvatar,
+            	}}
+            />
+        }
+		// @ts-ignore
+        if (message?.serverContent) {
+			// @ts-ignore
+            const content = message?.serverContent.modelTurn?.parts.map(p => p?.text ?? '').join('')
+            return content ? <Bubble
+                key={message?.id}
+                placement='start'
+                content={content}
+                typing={{ step: 10, interval: 50 }}
+                avatar={{
+                	icon: <RobotOutlined />,
+                	style: barAvatar,
+                }}
+            /> : null
+        }
+        return null
+    }, [message])
+
+    const audioComponent = useMemo(() => {
+		// @ts-ignore
+        if (message?.serverContent) {
+			// @ts-ignore
+            const audioParts = message?.serverContent.modelTurn?.parts.filter(p => p?.inlineData)
+            if (audioParts.length) {
+                // @ts-ignore
+                const base64s = audioParts.map((p) => p.inlineData?.data);
+                const buffer = base64sToArrayBuffer(base64s);
+                const blob = pcmBufferToBlob(buffer, 24000);
+                // TODO 这里会影响渲染性能，可以考虑抽到子组件里面？
+                const audioUrl = URL.createObjectURL(blob);
+                return <Bubble
+                	key={`audio-{message?.id}`}
+                	placement='start'
+                	content={<div><audio controls src={audioUrl}></audio></div>}
+                	avatar={{
+                		icon: <RobotOutlined />,
+                		style: barAvatar,
+                	}}
+                />
+            }
+        }
+        return null
+    }, [message])
+
+    return (
+        <>{textComponent}{audioComponent}</>
+    )
+}
 
 const LivePage = () => {
 	const {
@@ -88,8 +158,6 @@ const LivePage = () => {
 	>('tools-pane-active', {
 		defaultValue: [],
 	});
-
-	type MessgeType = RealtimeInputMessage | ClientContentMessage | ServerContentMessage | null
 
 	const [messages, setMessages] = useState<MessgeType[]>([]);
 
@@ -224,64 +292,9 @@ const LivePage = () => {
 								borderRadius: 20,
 							}}
 						>
-							{messages.map(m => {
-								// @ts-ignore
-								if (m?.clientContent) {
-									return <Bubble
-									    key={m?.id}
-										placement='end'
-										// @ts-ignore
-										content={m?.clientContent.turns?.[0]?.parts.map(p => p.text).join('')}
-										typing={{ step: 2, interval: 50 }}
-										avatar={{
-											icon: <UserOutlined />,
-											style: fooAvatar,
-										}}
-									/>
-								}
-								// @ts-ignore
-								if (m?.serverContent) {
-									// @ts-ignore
-									const content = m?.serverContent.modelTurn?.parts.map(p => p?.text ?? '').join('')
-									// @ts-ignore
-									const audioParts = m?.serverContent.modelTurn?.parts.filter(p => p?.inlineData)
-									let audioComponent = null
-									if (audioParts.length) {
-										// @ts-ignore
-										const base64s = audioParts.map((p) => p.inlineData?.data);
-										const buffer = base64sToArrayBuffer(base64s);
-										const blob = pcmBufferToBlob(buffer, 24000);
-										// TODO 这里会影响渲染性能，可以考虑抽到子组件里面？
-										const audioUrl = URL.createObjectURL(blob);
-										audioComponent = <Bubble
-											key={`audio-{m?.id}`}
-											placement='start'
-											content={<div><audio controls src={audioUrl}></audio></div>}
-											avatar={{
-												icon: <RobotOutlined />,
-												style: barAvatar,
-											}}
-										/>
-									}
-									console.log('audioParts', audioParts)
-									return (
-										<>
-											{content ? <Bubble
-												key={m?.id}
-												placement='start'
-												content={content}
-												typing={{ step: 10, interval: 50 }}
-												avatar={{
-													icon: <RobotOutlined />,
-													style: barAvatar,
-												}}
-											/> : null}
-											{audioComponent}
-										</>
-									)  
-								}
-								return null
-							})}
+                            <Flex gap="middle" vertical>
+								{messages.map(m => <MessageItem key={m?.id} message={m} />)}
+							</Flex>
 						</div>
 						<Flex justify='center'>
 							<Button

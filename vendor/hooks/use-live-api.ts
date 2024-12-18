@@ -135,6 +135,16 @@ export function useLiveAPI({
       // 文本输出，将文本放到bot message里面
       if (content.modelTurn?.parts) {
         botContentParts.current.push(...content.modelTurn?.parts)  
+        // 这里需要先设置文本消息，支持实时的打字机效果
+        setCurrentBotMessage({
+          serverContent: {
+            modelTurn: {
+              // 这里只有文本消息，语音消息只在最后收到turncomplete的时候再一次性发过去
+              parts: botContentParts.current,
+            }
+          },
+          id: currnetBotMessageId,
+        })
       }
 		}
 		const onInterrupted = () => {
