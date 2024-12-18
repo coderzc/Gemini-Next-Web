@@ -20,7 +20,7 @@
 
 ## 开始项目
 
-首先，在`.env`文件中填写`NEXT_GEMINI_API_KEY`并且启动项目
+首先，在`.env`文件中填写`NEXT_PUBLIC_GEMINI_API_KEY`并且启动项目
 
 ```bash
 npm run dev

@@ -50,6 +50,8 @@ const MediaStreamButton = memo(
 		)
 );
 
+const DEFAULT_MUTED_STATE = false; // 设置初始状态为非静音状态
+
 function MediaButtons({
 	videoRef,
 	children,
@@ -62,7 +64,7 @@ function MediaButtons({
 	const [webcam, screenCapture] = videoStreams;
 	const [inVolume, setInVolume] = useState(0);
 	const [audioRecorder] = useState(() => new AudioRecorder());
-	const [muted, setMuted] = useState(true); // 设置初始状态为静音
+	const [muted, setMuted] = useState(DEFAULT_MUTED_STATE); 
 	const renderCanvasRef = useRef<HTMLCanvasElement>(null);
 
 	const { client, connected } = useLiveAPIContext();
@@ -79,7 +81,7 @@ function MediaButtons({
 			webcam.stop();
 			screenCapture.stop();
 			audioRecorder.stop();
-			setMuted(true);
+			setMuted(DEFAULT_MUTED_STATE);
 			setActiveVideoStream(null);
 			onVideoStreamChange(null);
 			setInVolume(0);
