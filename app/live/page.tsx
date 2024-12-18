@@ -1,11 +1,11 @@
 'use client';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { PauseCircleTwoTone, PlayCircleTwoTone, UserOutlined, RobotOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useRef } from 'react';
+import { UserOutlined, RobotOutlined } from '@ant-design/icons';
 import { PauseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
 import { RealtimeInputMessage, ClientContentMessage, ServerContentMessage } from '@/vendor/multimodal-live-types';
-import { base64ToArrayBuffer, base64sToArrayBuffer, pcmBufferToBlob } from '@/vendor/lib/utils';
+import { base64sToArrayBuffer, pcmBufferToBlob } from '@/vendor/lib/utils';
 
 import {
 	Button,
@@ -89,7 +89,7 @@ const LivePage = () => {
 		defaultValue: [],
 	});
 
-	type MessgeType = RealtimeInputMessage & ClientContentMessage | ServerContentMessage | null
+	type MessgeType = RealtimeInputMessage | ClientContentMessage | ServerContentMessage | null
 
 	const [messages, setMessages] = useState<MessgeType[]>([]);
 
@@ -250,7 +250,7 @@ const LivePage = () => {
 										// @ts-ignore
 										const base64s = audioParts.map((p) => p.inlineData?.data);
 										const buffer = base64sToArrayBuffer(base64s);
-										const blob = pcmBufferToBlob(buffer);
+										const blob = pcmBufferToBlob(buffer, 24000);
 										// TODO 这里会影响渲染性能，可以考虑抽到子组件里面？
 										const audioUrl = URL.createObjectURL(blob);
 										audioComponent = <Bubble

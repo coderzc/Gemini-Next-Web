@@ -35,7 +35,7 @@ export type UseLiveAPIResults = {
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
   volume: number;
-  currentUserMessage: RealtimeInputMessage & ClientContentMessage | null;
+  currentUserMessage: RealtimeInputMessage | ClientContentMessage | null;
   currentBotMessage: ServerContentMessage | null;
 };
 
@@ -55,7 +55,7 @@ export function useLiveAPI({
   });
   const [volume, setVolume] = useState(0);
   // current message
-  const [currentUserMessage, setCurrentUserMessage] = useState<RealtimeInputMessage & ClientContentMessage | null>(null);
+  const [currentUserMessage, setCurrentUserMessage] = useState<RealtimeInputMessage | ClientContentMessage | null>(null);
   const [currentBotMessage, setCurrentBotMessage] = useState<ServerContentMessage | null>(null);
   // 服务端返回的语音，一方面直接播放，另一方面需要保存起来，结束的时候，生成一个播放地址
   const botAudioParts = useRef<Part[]>([]);
@@ -113,11 +113,11 @@ export function useLiveAPI({
       // 保存结果到botAudioParts
       botAudioParts.current = [...botAudioParts.current, ...data]
     }
-    const onInput = (data: RealtimeInputMessage & ClientContentMessage) => {
-      if (data?.realtimeInput?.mediaChunks) {
-        mediaChunks.current?.push(...data?.realtimeInput?.mediaChunks)
+    const onInput = (data: RealtimeInputMessage | ClientContentMessage) => {
+      if ((data as RealtimeInputMessage)?.realtimeInput?.mediaChunks) {
+        mediaChunks.current?.push(...(data as RealtimeInputMessage)?.realtimeInput?.mediaChunks)
       }
-      if (data?.clientContent) {
+      if ((data as ClientContentMessage)?.clientContent) {
         // 用户输入了就会有一个turnComplete，立即结束
         setCurrentUserMessage({
           ...data,

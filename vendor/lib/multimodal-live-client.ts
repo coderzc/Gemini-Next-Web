@@ -49,7 +49,7 @@ interface MultimodalLiveClientEventTypes {
 	audio: (data: ArrayBuffer) => void;
 	audiocontent: (data: ModelTurn['modelTurn']['parts']) => void;
 	content: (data: ModelTurn) => void;
-	input: (data: RealtimeInputMessage & ClientContentMessage) => void;
+	input: (data: RealtimeInputMessage | ClientContentMessage) => void;
 	interrupted: () => void;
 	setupcomplete: () => void;
 	turncomplete: () => void;
