@@ -85,12 +85,11 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 		this.send = this.send.bind(this);
 	}
 
-	log(type: string, message: StreamingLog['message'], buffer?: ArrayBuffer) {
+	log(type: string, message: StreamingLog['message']) {
 		const log: StreamingLog = {
 			date: new Date(),
 			type,
 			message,
-			buffer,
 		};
 		this.emit('log', log);
 	}
@@ -228,7 +227,6 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 						this.log(
 							`server.audio`,
 							`buffer (${data.byteLength})`,
-							data
 						);
 					}
 				});
@@ -253,13 +251,11 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 	sendRealtimeInput(chunks: GenerativeContentBlob[]) {
 		let hasAudio = false;
 		let hasVideo = false;
-		let audioBuffer: ArrayBuffer | undefined;
 
 		for (let i = 0; i < chunks.length; i++) {
 			const ch = chunks[i];
 			if (ch.mimeType.includes('audio')) {
 				hasAudio = true;
-				audioBuffer = base64ToArrayBuffer(ch.data);
 			}
 			if (ch.mimeType.includes('image')) {
 				hasVideo = true;
@@ -284,7 +280,7 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 		};
 		this._sendDirect(data);
 		this.emit('input', data);
-		this.log(`client.realtimeInput`, message, audioBuffer);
+		this.log(`client.realtimeInput`, message);
 	}
 
 	/**
