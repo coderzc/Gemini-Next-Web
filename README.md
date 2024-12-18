@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1 align="center">AutoGPT-Next-Web</h1>
+<h1 align="center">Gemini-Next-Web</h1>
 
 English / [简体中文]
 
