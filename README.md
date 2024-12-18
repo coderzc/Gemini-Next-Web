@@ -1,3 +1,22 @@
+<div align="center">
+
+<h1 align="center">AutoGPT-Next-Web</h1>
+
+English / [简体中文]
+
+One-Click Free Deployment of Your Private Gemini 2.0 Multi-Modal Web Application
+
+Accessible anytime on both computer and mobile devices.
+
+[Demo](https://www.gemininextweb.com/) / [Issues](https://github.com/ElricLiu/Gemini-Next-Web/issues) / [Join Discord](https://discord.gg/XMwSFHfm7u) / [Buy Me a Coffee](https://www.buymeacoffee.com/elricliu)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDogtiti%2FAutoGPT-Next-Web&env=OPENAI_API_KEY&project-name=autogpt-next-web&repository-name=AutoGPT-Next-Web)
+
+![cover](https://github.com/user-attachments/assets/0dc224c0-52dd-4b40-bd08-8c744b267803)
+
+</div>
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
