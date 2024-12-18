@@ -23,7 +23,7 @@ Accessible anytime on both computer and mobile devices.
 ## Getting Started
 First of all，you need to obtain the API Key from google aistudio https://aistudio.google.com
 
-Please pay attention to the network environment, the network environment licensed by Gemini will not be available
+Please pay attention to the network environment. Non-Gemini authorized network environments will not be available.
 
 #### - Vercel one-click deployment
 
