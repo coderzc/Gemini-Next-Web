@@ -8,13 +8,13 @@
 		"url": "https://github.com/dogtiti"
 	},
 	"license": "MIT",
-	"homepage": "https://github.com/Dogtiti/GeminiNextWeb#readme",
+	"homepage": "https://github.com/ElricLiu/GeminiNextWeb#readme",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Dogtiti/GeminiNextWeb.git"
+		"url": "git+https://github.com/ElricLiu/GeminiNextWeb.git"
 	},
 	"bugs": {
-		"url": "https://github.com/Dogtiti/GeminiNextWeb/issues"
+		"url": "https://github.com/ElricLiu/GeminiNextWeb/issues"
 	},
 	"keywords": [
 		"gemini",
