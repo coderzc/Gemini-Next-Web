@@ -1,9 +1,9 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { PauseCircleTwoTone, PlayCircleTwoTone } from '@ant-design/icons';
+import { PauseCircleTwoTone, PlayCircleTwoTone, UserOutlined, RobotOutlined } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
-import { StreamingLog } from '@/vendor/multimodal-live-types';
+import { StreamingLog, RealtimeInputMessage, ClientContentMessage, ServerContentMessage } from '@/vendor/multimodal-live-types';
 import { pcmBufferToBlob } from '@/vendor/lib/utils';
 
 import {
@@ -17,7 +17,7 @@ import {
 	Tag,
 	Checkbox,
 } from 'antd';
-import { Sender } from '@ant-design/x';
+import { Sender, Bubble } from '@ant-design/x';
 import { useLocalStorageState } from 'ahooks';
 import FieldItem from '@/components/field-item';
 import GeminiIcon from '@/app/icon/google-gemini-icon.svg';
@@ -34,6 +34,16 @@ interface ToolsState {
 	grounding: boolean;
 }
 
+const fooAvatar: React.CSSProperties = {
+	color: '#f56a00',
+	backgroundColor: '#fde3cf',
+};
+
+const barAvatar: React.CSSProperties = {
+	color: '#fff',
+	backgroundColor: '#1677ff',
+};
+
 const LivePage = () => {
 	const {
 		token: {
@@ -47,7 +57,7 @@ const LivePage = () => {
 	// either the screen capture, the video or null, if null we hide it
 	const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
 
-	const { client, config, setConfig, connected, connect, disconnect } =
+	const { client, config, setConfig, connected, connect, disconnect, currentBotMessage, currentUserMessage } =
 		useLiveAPIContext();
 
 	const [textInput, setTextInput] = useState('');
@@ -80,101 +90,100 @@ const LivePage = () => {
 		defaultValue: [],
 	});
 
-	const [messages, setMessages] = useState<StreamingLog[]>([]);
+	type MessgeType = RealtimeInputMessage & ClientContentMessage | ServerContentMessage | null
+
+	const [messages, setMessages] = useState<MessgeType[]>([]);
 
 	const handleSubmit = () => {
 		client.send([{ text: textInput }]);
 		setTextInput('');
 	};
 
-	const log = useCallback(({ date, type, message, buffer }: StreamingLog) => {
-		setMessages((state) => {
-			const prevLog = state.at(-1);
-			if (
-				prevLog &&
-				prevLog.type === type &&
-				prevLog.message === message
-			) {
-				return [
-					...state.slice(0, -1),
-					{
-						date,
-						type,
-						message,
-						count: prevLog.count ? prevLog.count + 1 : 1,
-						buffer,
-					} as StreamingLog,
-				];
-			}
-			return [
-				...state,
-				{
-					date,
-					type,
-					message,
-					buffer,
-				} as StreamingLog,
-			];
-		});
-	}, []);
+	// useEffect(() => {
+	// 	let parts: any[] = []; // 这里先保存文本
+	// 	let buffers: ArrayBuffer[] = []; // 保存语音
+	// 	const onAudio = (data: ArrayBuffer) => {
+	// 		// TODO 当开始接收语音消息，或者接收文本消息的时候，说明，用户输入的消息需要中断
+	// 		console.log('onAudio', data)
+	// 		buffers.push(data)
+	// 	}
+	// 	const onContent = (content: any) => {
+	// 		console.log('onContent', content)
+	// 		parts.push(...content.modelTurn.parts)
+	// 	}
+	// 	const onInterrupted = () => {
+	// 		// 这个事件应该表示的是，机器人的语音消息被打断？
+	// 		console.log('onInterrupted')
+	// 		if (buffers.length) {
+	// 			new Blob(buffers).arrayBuffer().then((buffer: ArrayBuffer) => {
+	// 				const blob = pcmBufferToBlob(buffer);
+	// 				const audioUrl = URL.createObjectURL(blob);
+	// 				const message = { audioUrl }
+	// 				setMessages((state: any) => {
+	// 					console.log('new message', state, message)
+	// 					return [...state, message]
+	// 				})
+	// 			})
+	// 		}
+	// 	}
+	// 	const onTurnComplete = () => {
+	// 		// 这个事件表示机器人生成的消息结束了
+	// 		console.log('onTurnComplete')
+	// 		if (parts.length) {
+	// 			const message = { parts }
+	// 			parts = []
+	// 			console.log('new message', message)
+	// 			setMessages((state: any) => {
+	// 				console.log('new message', state, message)
+	// 				return [...state, message]
+	// 			})
+	// 		}
+	// 	}
+    //     const input = (data) => {
+	// 		// 这里如果是media chunks，是定时截取的，需要使用一个变量不断累加，需要等onAudio/onContent的时候将用户输入消息截断，开始新的消息。
+	// 		// 如果是用户输入文本 clientContent，应该是当前用户的消息直接结束。
+    //         console.log('input', data?.realtimeInput?.mediaChunks, data.clientContent)
+    //     }
+	// 	const log = (data) => {
+    //         // console.log('log', data)
+    //     }
+	// 	client.on('audio', onAudio).on('content', onContent)
+	// 		.on('interrupted', onInterrupted).on('turncomplete', onTurnComplete);
+    //     client.on('log', log).on('input', input)
+	// 	return () => {
+	// 		client.off('audio', onAudio).off('content', onContent)
+	// 		    .off('interrupted', onInterrupted).off('turncomplete', onTurnComplete);
+    //         client.off('log', log).off('input', input)
+	// 	};
+	// }, [client]);
 
 	useEffect(() => {
-		let parts: any[] = []; // 这里先保存文本
-		let buffers: ArrayBuffer[] = []; // 保存语音
-		const onAudio = (data: ArrayBuffer) => {
-			// TODO 当开始接收语音消息，或者接收文本消息的时候，说明，用户输入的消息需要中断
-			console.log('onAudio', data)
-			buffers.push(data)
+		console.log('currentBotMessage', currentBotMessage)
+		if (currentBotMessage) {
+			setMessages((messages) => {
+				if (messages.filter(m => m?.id === currentBotMessage?.id).length > 0){
+					return messages.map(m => m?.id === currentBotMessage?.id ? currentBotMessage : m)
+				} else {
+					return [...messages, currentBotMessage]
+				}
+			})
 		}
-		const onContent = (content: any) => {
-			console.log('onContent', content)
-			parts.push(...content.modelTurn.parts)
+	}, [currentBotMessage])
+
+	useEffect(() => {
+		console.log('currentUserMessage', currentUserMessage)
+		if (currentUserMessage) {
+			setMessages((messages) => {
+				if (messages.filter(m => m?.id === currentUserMessage?.id).length > 0){
+					return messages.map(m => m?.id === currentUserMessage?.id ? currentUserMessage : m)
+				} else {
+					return [...messages, currentUserMessage]
+				}
+			})
 		}
-		const onInterrupted = () => {
-			// 这个事件应该表示的是，机器人的语音消息被打断？
-			console.log('onInterrupted')
-			if (buffers.length) {
-				new Blob(buffers).arrayBuffer().then((buffer: ArrayBuffer) => {
-					const blob = pcmBufferToBlob(buffer);
-					const audioUrl = URL.createObjectURL(blob);
-					const message = { audioUrl }
-					setMessages((state: any) => {
-						console.log('new message', state, message)
-						return [...state, message]
-					})
-				})
-			}
-		}
-		const onTurnComplete = () => {
-			// 这个事件表示机器人生成的消息结束了
-			console.log('onTurnComplete')
-			if (parts.length) {
-				const message = { parts }
-				parts = []
-				console.log('new message', message)
-				setMessages((state: any) => {
-					console.log('new message', state, message)
-					return [...state, message]
-				})
-			}
-		}
-        const input = (data) => {
-			// 这里如果是media chunks，是定时截取的，需要使用一个变量不断累加，需要等onAudio/onContent的时候将用户输入消息截断，开始新的消息。
-			// 如果是用户输入文本 clientContent，应该是当前用户的消息直接结束。
-            console.log('input', data?.realtimeInput?.mediaChunks, data.clientContent)
-        }
-		const log = (data) => {
-            // console.log('log', data)
-        }
-		client.on('audio', onAudio).on('content', onContent)
-			.on('interrupted', onInterrupted).on('turncomplete', onTurnComplete);
-        client.on('log', log).on('input', input)
-		return () => {
-			client.off('audio', onAudio).off('content', onContent)
-			    .off('interrupted', onInterrupted).off('turncomplete', onTurnComplete);
-            client.off('log', log).off('input', input)
-		};
-	}, [client]);
+	}, [currentUserMessage])
+
+	console.log('messages', messages)
 
 	useEffect(() => {
 		// if (!connected) return;
@@ -269,38 +278,39 @@ const LivePage = () => {
 								borderRadius: 20,
 							}}
 						>
+							{/* {messages.map(m => <pre key={m?.id}>{JSON.stringify(m)}</pre>)} */}
 							{messages.map(m => {
-								<pre>{JSON.stringify(m)}</pre>
+								// @ts-ignore
+								if (m?.clientContent) {
+									return <Bubble
+									    key={m?.id}
+										placement='end'
+										// @ts-ignore
+										content={m?.clientContent.turns?.[0]?.parts.map(p => p.text).join('')}
+										typing={{ step: 2, interval: 50 }}
+										avatar={{
+											icon: <UserOutlined />,
+											style: fooAvatar,
+										}}
+									/>
+								}
+								// @ts-ignore
+								if (m?.serverContent) {
+									return <Bubble
+									    key={m?.id}
+										placement='start'
+										// @ts-ignore
+										content={m?.serverContent.modelTurn?.parts.map(p => p.text).join('')}
+										typing={{ step: 10, interval: 50 }}
+										avatar={{
+											icon: <RobotOutlined />,
+											style: barAvatar,
+										}}
+									/>
+								}
+								return null
 							})}
-							<Logger logs={messages} />
-							{/* <Bubble
-									placement='start'
-									content='Good morning, how are you?'
-									avatar={{
-										icon: <Image src={GeminiIcon} alt={'Model'} />,
-										style: fooAvatar,
-									}}
-								/>
-								<Bubble
-									placement='start'
-									content='What a beautiful day!'
-									styles={{ avatar: hideAvatar }}
-									avatar={{}}
-								/>
-								<Bubble
-									placement='end'
-									content="Hi, good morning, I'm fine!"
-									avatar={{
-										icon: <UserOutlined />,
-										style: barAvatar,
-									}}
-								/>
-								<Bubble
-									placement='end'
-									content='Thank you!'
-									styles={{ avatar: hideAvatar }}
-									avatar={{}}
-								/> */}
+							{/* <Logger logs={messages} /> */}
 						</div>
 						<Flex justify='center'>
 							<Button

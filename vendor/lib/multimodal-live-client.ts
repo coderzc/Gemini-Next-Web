@@ -47,8 +47,8 @@ interface MultimodalLiveClientEventTypes {
 	log: (log: StreamingLog) => void;
 	close: (event: CloseEvent) => void;
 	audio: (data: ArrayBuffer) => void;
-	content: (data: ServerContent) => void;
-	input: (data: RealtimeInputMessage | ClientContentMessage) => void;
+	content: (data: ModelTurn) => void;
+	input: (data: RealtimeInputMessage & ClientContentMessage) => void;
 	interrupted: () => void;
 	setupcomplete: () => void;
 	turncomplete: () => void;

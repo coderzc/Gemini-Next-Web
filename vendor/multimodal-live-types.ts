@@ -69,6 +69,7 @@ export type SetupMessage = {
 };
 
 export type ClientContentMessage = {
+	id?: string;
 	clientContent: {
 		turns: Content[];
 		turnComplete: boolean;
@@ -76,6 +77,7 @@ export type ClientContentMessage = {
 };
 
 export type RealtimeInputMessage = {
+	id?: string;
 	realtimeInput: {
 		mediaChunks: GenerativeContentBlob[];
 	};
@@ -105,6 +107,7 @@ export type LiveIncomingMessage =
 export type SetupCompleteMessage = { setupComplete: {} };
 
 export type ServerContentMessage = {
+	id?: string;
 	serverContent: ServerContent;
 };
 

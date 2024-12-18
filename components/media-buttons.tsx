@@ -4,7 +4,7 @@ import { UseMediaStreamResult } from "@/vendor/hooks/use-media-stream-mux";
 import { useScreenCapture } from "@/vendor/hooks/use-screen-capture";
 import { useWebcam } from "@/vendor/hooks/use-webcam";
 import { AudioRecorder } from "@/vendor/lib/audio-recorder";
-import { AudioOutlined, AudioMutedOutlined, VideoCameraOutlined, DesktopOutlined } from '@ant-design/icons';
+import { AudioOutlined, VideoCameraOutlined, DesktopOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
 
 
@@ -142,8 +142,8 @@ function MediaButtons({
       <canvas style={{ display: "none" }} ref={renderCanvasRef} />
       <div>
         <Button
-            type={connected ? "primary": "default"}
-            shape="circle" icon={!muted ? <AudioOutlined />: <AudioMutedOutlined />}
+            type={muted ? "primary": "default"}
+            shape="circle" icon={<AudioOutlined />}
             onClick={() => setMuted(!muted)}
         />
         {supportsVideo && (
