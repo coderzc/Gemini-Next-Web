@@ -122,6 +122,7 @@ const LivePage = () => {
 		let parts: any[] = []; // 这里先保存文本
 		let buffers: ArrayBuffer[] = []; // 保存语音
 		const onAudio = (data: ArrayBuffer) => {
+			// TODO 当开始接收语音消息，或者接收文本消息的时候，说明，用户输入的消息需要中断
 			console.log('onAudio', data)
 			buffers.push(data)
 		}
@@ -130,6 +131,7 @@ const LivePage = () => {
 			parts.push(...content.modelTurn.parts)
 		}
 		const onInterrupted = () => {
+			// 这个事件应该表示的是，机器人的语音消息被打断？
 			console.log('onInterrupted')
 			if (buffers.length) {
 				new Blob(buffers).arrayBuffer().then((buffer: ArrayBuffer) => {
@@ -137,27 +139,40 @@ const LivePage = () => {
 					const audioUrl = URL.createObjectURL(blob);
 					const message = { audioUrl }
 					setMessages((state: any) => {
+						console.log('new message', state, message)
 						return [...state, message]
 					})
 				})
 			}
 		}
 		const onTurnComplete = () => {
+			// 这个事件表示机器人生成的消息结束了
 			console.log('onTurnComplete')
 			if (parts.length) {
 				const message = { parts }
 				parts = []
 				console.log('new message', message)
 				setMessages((state: any) => {
+					console.log('new message', state, message)
 					return [...state, message]
 				})
 			}
 		}
+        const input = (data) => {
+			// 这里如果是media chunks，是定时截取的，需要使用一个变量不断累加，需要等onAudio/onContent的时候将用户输入消息截断，开始新的消息。
+			// 如果是用户输入文本 clientContent，应该是当前用户的消息直接结束。
+            console.log('input', data?.realtimeInput?.mediaChunks, data.clientContent)
+        }
+		const log = (data) => {
+            // console.log('log', data)
+        }
 		client.on('audio', onAudio).on('content', onContent)
 			.on('interrupted', onInterrupted).on('turncomplete', onTurnComplete);
+        client.on('log', log).on('input', input)
 		return () => {
 			client.off('audio', onAudio).off('content', onContent)
-			.off('interrupted', onInterrupted).off('turncomplete', onTurnComplete);
+			    .off('interrupted', onInterrupted).off('turncomplete', onTurnComplete);
+            client.off('log', log).off('input', input)
 		};
 	}, [client]);
 
@@ -254,6 +269,9 @@ const LivePage = () => {
 								borderRadius: 20,
 							}}
 						>
+							{messages.map(m => {
+								<pre>{JSON.stringify(m)}</pre>
+							})}
 							<Logger logs={messages} />
 							{/* <Bubble
 									placement='start'

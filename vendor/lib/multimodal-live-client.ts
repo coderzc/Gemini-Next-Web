@@ -48,6 +48,7 @@ interface MultimodalLiveClientEventTypes {
 	close: (event: CloseEvent) => void;
 	audio: (data: ArrayBuffer) => void;
 	content: (data: ServerContent) => void;
+	input: (data: RealtimeInputMessage | ClientContentMessage) => void;
 	interrupted: () => void;
 	setupcomplete: () => void;
 	turncomplete: () => void;
@@ -280,6 +281,7 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 			},
 		};
 		this._sendDirect(data);
+		this.emit('input', data);
 		this.log(`client.realtimeInput`, message, audioBuffer);
 	}
 
@@ -313,6 +315,7 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 		};
 
 		this._sendDirect(clientContentRequest);
+		this.emit('input', clientContentRequest);
 		this.log(`client.send`, clientContentRequest);
 	}
 

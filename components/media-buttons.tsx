@@ -61,6 +61,7 @@ function MediaButtons({
 
   useEffect(() => {
     client.on('close', () => {
+      // console.log('close event', webcam, screenCapture, activeVideoStream)
       webcam.stop();
       screenCapture.stop();
       audioRecorder.stop();
