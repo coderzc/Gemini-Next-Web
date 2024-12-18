@@ -55,15 +55,6 @@ type MessageType =
 	| ServerContentMessage
 	| null;
 
-interface MessageContent {
-	turns?: Array<{
-		parts: Part[];
-	}>;
-	modelTurn?: {
-		parts: Part[];
-	};
-}
-
 const isClientMessage = (
 	message: MessageType
 ): message is ClientContentMessage => {
