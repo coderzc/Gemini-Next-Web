@@ -60,7 +60,7 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 		if (message?.clientContent) {
 			// @ts-ignore
 			const content = message?.clientContent.turns?.[0]?.parts
-				.map((p) => p.text)
+				.map((p: any) => p.text)
 				.join('');
 			return (
 				<Bubble
@@ -79,7 +79,7 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 		if (message?.serverContent) {
 			// @ts-ignore
 			const content = message?.serverContent.modelTurn?.parts
-				.map((p) => p?.text ?? '')
+				.map((p: any) => p?.text ?? '')
 				.join('');
 			return content ? (
 				<Bubble
@@ -102,7 +102,7 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 		if (message?.serverContent) {
 			// @ts-ignore
 			const audioParts = message?.serverContent.modelTurn?.parts.filter(
-				(p) => p?.inlineData
+				(p: any) => p?.inlineData
 			);
 			if (audioParts.length) {
 				// @ts-ignore
