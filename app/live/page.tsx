@@ -4,7 +4,7 @@ import { PauseCircleTwoTone, PlayCircleTwoTone, UserOutlined, RobotOutlined } fr
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
 import { RealtimeInputMessage, ClientContentMessage, ServerContentMessage } from '@/vendor/multimodal-live-types';
-import { pcmBufferToBlob } from '@/vendor/lib/utils';
+import { base64ToArrayBuffer, base64sToArrayBuffer, pcmBufferToBlob } from '@/vendor/lib/utils';
 
 import {
 	Button,
@@ -218,7 +218,6 @@ const LivePage = () => {
 								borderRadius: 20,
 							}}
 						>
-							{/* {messages.map(m => <pre key={m?.id}>{JSON.stringify(m)}</pre>)} */}
 							{messages.map(m => {
 								// @ts-ignore
 								if (m?.clientContent) {
@@ -236,17 +235,44 @@ const LivePage = () => {
 								}
 								// @ts-ignore
 								if (m?.serverContent) {
-									return <Bubble
-									    key={m?.id}
-										placement='start'
+									// @ts-ignore
+									const content = m?.serverContent.modelTurn?.parts.map(p => p?.text ?? '').join('')
+									// @ts-ignore
+									const audioParts = m?.serverContent.modelTurn?.parts.filter(p => p?.inlineData)
+									let audioComponent = null
+									if (audioParts.length) {
 										// @ts-ignore
-										content={m?.serverContent.modelTurn?.parts.map(p => p.text).join('')}
-										typing={{ step: 10, interval: 50 }}
-										avatar={{
-											icon: <RobotOutlined />,
-											style: barAvatar,
-										}}
-									/>
+										const base64s = audioParts.map((p) => p.inlineData?.data);
+										const buffer = base64sToArrayBuffer(base64s);
+										const blob = pcmBufferToBlob(buffer);
+										// TODO 这里会影响渲染性能，可以考虑抽到子组件里面？
+										const audioUrl = URL.createObjectURL(blob);
+										audioComponent = <Bubble
+											key={`audio-{m?.id}`}
+											placement='start'
+											content={<div><audio controls src={audioUrl}></audio></div>}
+											avatar={{
+												icon: <RobotOutlined />,
+												style: barAvatar,
+											}}
+										/>
+									}
+									console.log('audioParts', audioParts)
+									return (
+										<>
+											{content ? <Bubble
+												key={m?.id}
+												placement='start'
+												content={content}
+												typing={{ step: 10, interval: 50 }}
+												avatar={{
+													icon: <RobotOutlined />,
+													style: barAvatar,
+												}}
+											/> : null}
+											{audioComponent}
+										</>
+									)  
 								}
 								return null
 							})}

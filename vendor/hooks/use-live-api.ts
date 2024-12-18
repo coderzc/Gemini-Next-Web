@@ -58,7 +58,7 @@ export function useLiveAPI({
   const [currentUserMessage, setCurrentUserMessage] = useState<RealtimeInputMessage & ClientContentMessage | null>(null);
   const [currentBotMessage, setCurrentBotMessage] = useState<ServerContentMessage | null>(null);
   // 服务端返回的语音，一方面直接播放，另一方面需要保存起来，结束的时候，生成一个播放地址
-  const botAudioBuffers = useRef<ArrayBuffer[]>([]);
+  const botAudioParts = useRef<Part[]>([]);
   const botContentParts = useRef<Part[]>([]);
   // 用户输入的语音/图片需要保存起来，结束的时候生成语音/视频？
   const mediaChunks = useRef<GenerativeContentBlob[]>([]);
@@ -105,9 +105,13 @@ export function useLiveAPI({
   useEffect(() => {
     let currnetBotMessageId: string = nanoid()
     let currnetUserMessageId: string = nanoid()
-    const onAudio = (data: ArrayBuffer) => {
-      // 保存结果到botAudioBuffers
-      botAudioBuffers.current?.push(data)
+    // const onAudio = (data: ArrayBuffer) => {
+    //   // 保存结果到botAudioBuffers
+    //   botAudioBuffers.current?.push(data)
+    // }
+    const onAudioContent = (data: ModelTurn['modelTurn']['parts']) => {
+      // 保存结果到botAudioParts
+      botAudioParts.current = [...botAudioParts.current, ...data]
     }
     const onInput = (data: RealtimeInputMessage & ClientContentMessage) => {
       if (data?.realtimeInput?.mediaChunks) {
@@ -149,19 +153,21 @@ export function useLiveAPI({
 			// }
 		}
 		const onTurnComplete = () => {
-			// 这个事件表示机器人生成的消息结束了
+			// 这个事件表示机器人生成的消息结束了，不管是文本结束还是语音结束，都有这个消息
 			console.log('onTurnComplete')
-			if (botContentParts.current?.length) {
+			if (botContentParts.current?.length || botAudioParts.current?.length) {
         setCurrentBotMessage({
           serverContent: {
             modelTurn: {
-              parts: botContentParts.current,  // 这里只有文本消息
+              // 文本消息加上语音消息
+              parts: [...botContentParts.current, ...botAudioParts.current],
             }
           },
           id: currnetBotMessageId,
         })
         currnetBotMessageId = nanoid()
         botContentParts.current = []; // 清空数据
+        botAudioParts.current = [];
 			}
 		}
     client
@@ -169,14 +175,14 @@ export function useLiveAPI({
       .on('turncomplete', onTurnComplete)
       .on('content', onContent)
       .on('input', onInput)
-      .on('audio', onAudio);
+      .on('audiocontent', onAudioContent);
     return () => {
       client
         .off('interrupted', onInterrupted)
         .off('turncomplete', onTurnComplete)
         .off('content', onContent)
         .off('input', onInput)
-        .off('audio', onAudio);
+        .off('audiocontent', onAudioContent);
     }
   }, [client])
 

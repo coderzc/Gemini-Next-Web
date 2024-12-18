@@ -47,6 +47,7 @@ interface MultimodalLiveClientEventTypes {
 	log: (log: StreamingLog) => void;
 	close: (event: CloseEvent) => void;
 	audio: (data: ArrayBuffer) => void;
+	audiocontent: (data: ModelTurn['modelTurn']['parts']) => void;
 	content: (data: ModelTurn) => void;
 	input: (data: RealtimeInputMessage & ClientContentMessage) => void;
 	interrupted: () => void;
@@ -213,6 +214,7 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 						p.inlineData &&
 						p.inlineData.mimeType.startsWith('audio/pcm')
 				);
+				this.emit('audiocontent', audioParts);
 				const base64s = audioParts.map((p) => p.inlineData?.data);
 
 				// strip the audio parts out of the modelTurn

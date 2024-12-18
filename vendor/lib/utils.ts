@@ -86,6 +86,15 @@ export function base64ToArrayBuffer(base64: string) {
   return bytes.buffer;
 }
 
+export function base64sToArrayBuffer(base64s: string[]) {
+  var binaryString = base64s.map(atob).join('');
+  var bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 export function pcmBufferToBlob(buffer: ArrayBuffer, sampleRate = 16000, bytesPerSample = 16): Blob {
   const headerLength = 44;
   const numberOfChannels = 1;
