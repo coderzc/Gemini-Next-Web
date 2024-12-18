@@ -1,3 +1,24 @@
+<div align="center">
+
+<img src="https://github.com/user-attachments/assets/b32944c3-3a05-4380-b5cb-8cc4093f00a9" alt="cover" style="width: 100px; height: 100px;">
+
+<h1 align="center">Gemini-Next-Web</h1>
+
+English / [简体中文](https://github.com/ElricLiu/Gemini-Next-Web/blob/main/README-CN.md)
+
+One-Click Free Deployment of Your Private Gemini 2.0 Multi-Modal Web Application
+
+Accessible anytime on both computer and mobile devices.
+
+[Demo](https://www.gemininextweb.com/) / [Issues](https://github.com/ElricLiu/Gemini-Next-Web/issues) / [Join Discord](https://discord.gg/XMwSFHfm7u) / [Buy Me a Coffee](https://www.buymeacoffee.com/elricliu)
+
+[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=Gemini-Next-Web&repository-name=Gemini-Next-Web)
+
+![cover](https://github.com/user-attachments/assets/0dc224c0-52dd-4b40-bd08-8c744b267803)
+
+</div>
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PauseCircleTwoTone, PlayCircleTwoTone, UserOutlined, RobotOutlined } from '@ant-design/icons';
+import { PauseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
 import { RealtimeInputMessage, ClientContentMessage, ServerContentMessage } from '@/vendor/multimodal-live-types';
@@ -152,6 +153,11 @@ const LivePage = () => {
 		border: 'none',
 	};
 
+	const handleDisconnect = () => {
+		setVideoStream(null); // 关闭视频预览
+		disconnect();
+	};
+
 	return (
 		<Layout
 			style={{
@@ -279,16 +285,21 @@ const LivePage = () => {
 						</div>
 						<Flex justify='center'>
 							<Button
-								type={connected ? 'primary' : 'default'}
-								onClick={connected ? disconnect : connect}
+								color='primary'
+								variant={connected ? 'outlined' : 'solid'}
+								onClick={connected ? handleDisconnect : connect}
 								icon={
 									connected ? (
-										<PauseCircleTwoTone />
+										<PauseCircleOutlined />
 									) : (
-										<PlayCircleTwoTone />
+										<PoweroffOutlined />
 									)
 								}
-							/>
+							>
+								{connected
+									? 'Disconnect'
+									: 'Click me to start !'}
+							</Button>
 						</Flex>
 						<div
 							className='px-5 py-2'
@@ -304,7 +315,7 @@ const LivePage = () => {
 								prefix={
 									<MediaButtons
 										videoRef={videoRef}
-										supportsVideo={true}
+										supportsVideo
 										onVideoStreamChange={setVideoStream}
 									/>
 								}
