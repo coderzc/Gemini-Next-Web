@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://github.com/user-attachments/assets/b32944c3-3a05-4380-b5cb-8cc4093f00a9" alt="cover" style="width: 100px; height: 100px;">
+
 <h1 align="center">Gemini-Next-Web</h1>
 
 English / [简体中文](https://github.com/ElricLiu/Gemini-Next-Web/blob/main/README-CN.md)
@@ -10,7 +12,7 @@ Accessible anytime on both computer and mobile devices.
 
 [Demo](https://www.gemininextweb.com/) / [Issues](https://github.com/ElricLiu/Gemini-Next-Web/issues) / [Join Discord](https://discord.gg/XMwSFHfm7u) / [Buy Me a Coffee](https://www.buymeacoffee.com/elricliu)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDogtiti%2FAutoGPT-Next-Web&env=OPENAI_API_KEY&project-name=autogpt-next-web&repository-name=AutoGPT-Next-Web)
+[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=Gemini-Next-Web&repository-name=Gemini-Next-Web)
 
 ![cover](https://github.com/user-attachments/assets/0dc224c0-52dd-4b40-bd08-8c744b267803)
 
