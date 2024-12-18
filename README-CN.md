@@ -10,7 +10,7 @@
 
 随时随地在电脑和移动设备上访问。
 
-[演示](https://www.gemininextweb.com/) / [反馈](https://github.com/ElricLiu/Gemini-Next-Web/issues) / [QQ](https://discord.gg/XMwSFHfm7u) / [赞赏](https://www.buymeacoffee.com/elricliu)
+[演示](https://www.gemininextweb.com/) / [反馈](https://github.com/ElricLiu/Gemini-Next-Web/issues) / [QQ](https://qm.qq.com/q/Bxx3eI3ilW) / [赞赏](https://www.buymeacoffee.com/elricliu)
 
 [<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=Gemini-Next-Web&repository-name=Gemini-Next-Web)
 
