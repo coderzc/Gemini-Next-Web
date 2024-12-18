@@ -292,7 +292,9 @@ const LivePage = () => {
 								borderRadius: 20,
 							}}
 						>
-                            {messages.map(m => <MessageItem key={m?.id} message={m} />)}
+                            <Flex gap="middle" vertical>
+								{messages.map(m => <MessageItem key={m?.id} message={m} />)}
+							</Flex>
 						</div>
 						<Flex justify='center'>
 							<Button
