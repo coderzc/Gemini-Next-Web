@@ -23,14 +23,14 @@ Accessible anytime on both computer and mobile devices.
 ## Getting Started
 First of all，you need to obtain the API Key from google aistudio https://aistudio.google.com
 
-### 1、Vercel one-click deployment
+#### - Vercel one-click deployment
 
 [<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=gemini-next-web&repository-name=gemini-next-web)
 
 Set you Environment Variables `NEXT_PUBLIC_GEMINI_API_KEY` & API Key in vercel
 
 
-### 2、Local deployment
+#### - Local deployment
 First, set you `NEXT_PUBLIC_GEMINI_API_KEY` in `.env` and run the development server:
 
 ```bash
