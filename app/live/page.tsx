@@ -4,7 +4,11 @@ import { UserOutlined, RobotOutlined } from '@ant-design/icons';
 import { PauseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
-import { RealtimeInputMessage, ClientContentMessage, ServerContentMessage } from '@/vendor/multimodal-live-types';
+import {
+	RealtimeInputMessage,
+	ClientContentMessage,
+	ServerContentMessage,
+} from '@/vendor/multimodal-live-types';
 import { base64sToArrayBuffer, pcmBufferToBlob } from '@/vendor/lib/utils';
 
 import {
@@ -43,75 +47,95 @@ const barAvatar: React.CSSProperties = {
 	backgroundColor: '#1677ff',
 };
 
+type MessgeType =
+	| RealtimeInputMessage
+	| ClientContentMessage
+	| ServerContentMessage
+	| null;
 
-type MessgeType = RealtimeInputMessage | ClientContentMessage | ServerContentMessage | null
-
-
-const MessageItem = ({message}: {message: MessgeType}) => {
-
-    const textComponent = useMemo(() => {
+const MessageItem = ({ message }: { message: MessgeType }) => {
+	const textComponent = useMemo(() => {
 		// @ts-ignore
-        if (message?.clientContent){
-            return <Bubble
-                key={message?.id}
-            	placement='end'
-            	// @ts-ignore
-            	content={message?.clientContent.turns?.[0]?.parts.map(p => p.text).join('')}
-            	typing={{ step: 2, interval: 50 }}
-            	avatar={{
-            		icon: <UserOutlined />,
-            		style: fooAvatar,
-            	}}
-            />
-        }
+		if (message?.clientContent) {
+			return (
+				<Bubble
+					key={message?.id}
+					placement='end'
+					// @ts-ignore
+					content={message?.clientContent.turns?.[0]?.parts
+						.map((p) => p.text)
+						.join('')}
+					typing={{ step: 2, interval: 50 }}
+					avatar={{
+						icon: <UserOutlined />,
+						style: fooAvatar,
+					}}
+				/>
+			);
+		}
 		// @ts-ignore
-        if (message?.serverContent) {
+		if (message?.serverContent) {
 			// @ts-ignore
-            const content = message?.serverContent.modelTurn?.parts.map(p => p?.text ?? '').join('')
-            return content ? <Bubble
-                key={message?.id}
-                placement='start'
-                content={content}
-                typing={{ step: 10, interval: 50 }}
-                avatar={{
-                	icon: <RobotOutlined />,
-                	style: barAvatar,
-                }}
-            /> : null
-        }
-        return null
-    }, [message])
+			const content = message?.serverContent.modelTurn?.parts
+				.map((p) => p?.text ?? '')
+				.join('');
+			return content ? (
+				<Bubble
+					key={message?.id}
+					placement='start'
+					content={content}
+					typing={{ step: 10, interval: 50 }}
+					avatar={{
+						icon: <RobotOutlined />,
+						style: barAvatar,
+					}}
+				/>
+			) : null;
+		}
+		return null;
+	}, [message]);
 
-    const audioComponent = useMemo(() => {
+	const audioComponent = useMemo(() => {
 		// @ts-ignore
-        if (message?.serverContent) {
+		if (message?.serverContent) {
 			// @ts-ignore
-            const audioParts = message?.serverContent.modelTurn?.parts.filter(p => p?.inlineData)
-            if (audioParts.length) {
-                // @ts-ignore
-                const base64s = audioParts.map((p) => p.inlineData?.data);
-                const buffer = base64sToArrayBuffer(base64s);
-                const blob = pcmBufferToBlob(buffer, 24000);
-                // TODO 这里会影响渲染性能，可以考虑抽到子组件里面？
-                const audioUrl = URL.createObjectURL(blob);
-                return <Bubble
-                	key={`audio-{message?.id}`}
-                	placement='start'
-                	content={<div><audio controls src={audioUrl}></audio></div>}
-                	avatar={{
-                		icon: <RobotOutlined />,
-                		style: barAvatar,
-                	}}
-                />
-            }
-        }
-        return null
-    }, [message])
+			const audioParts = message?.serverContent.modelTurn?.parts.filter(
+				(p) => p?.inlineData
+			);
+			if (audioParts.length) {
+				// @ts-ignore
+				const base64s = audioParts.map((p) => p.inlineData?.data);
+				const buffer = base64sToArrayBuffer(base64s);
+				const blob = pcmBufferToBlob(buffer, 24000);
+				// TODO 这里会影响渲染性能，可以考虑抽到子组件里面？
+				const audioUrl = URL.createObjectURL(blob);
+				return (
+					<Bubble
+						key={`audio-{message?.id}`}
+						placement='start'
+						content={
+							<div>
+								<audio controls src={audioUrl}></audio>
+							</div>
+						}
+						avatar={{
+							icon: <RobotOutlined />,
+							style: barAvatar,
+						}}
+					/>
+				);
+			}
+		}
+		return null;
+	}, [message]);
 
-    return (
-        <>{textComponent}{audioComponent}</>
-    )
-}
+	return (
+		<>
+			{textComponent}
+			{audioComponent}
+		</>
+	);
+};
 
 const LivePage = () => {
 	const {
@@ -126,8 +150,16 @@ const LivePage = () => {
 	// either the screen capture, the video or null, if null we hide it
 	const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
 
-	const { client, config, setConfig, connected, connect, disconnect, currentBotMessage, currentUserMessage } =
-		useLiveAPIContext();
+	const {
+		client,
+		config,
+		setConfig,
+		connected,
+		connect,
+		disconnect,
+		currentBotMessage,
+		currentUserMessage,
+	} = useLiveAPIContext();
 
 	const [textInput, setTextInput] = useState('');
 
@@ -167,32 +199,44 @@ const LivePage = () => {
 	};
 
 	useEffect(() => {
-		console.log('currentBotMessage', currentBotMessage)
+		console.log('currentBotMessage', currentBotMessage);
 		if (currentBotMessage) {
 			setMessages((messages) => {
-				if (messages.filter(m => m?.id === currentBotMessage?.id).length > 0){
-					return messages.map(m => m?.id === currentBotMessage?.id ? currentBotMessage : m)
+				if (
+					messages.filter((m) => m?.id === currentBotMessage?.id)
+						.length > 0
+				) {
+					return messages.map((m) =>
+						m?.id === currentBotMessage?.id ? currentBotMessage : m
+					);
 				} else {
-					return [...messages, currentBotMessage]
+					return [...messages, currentBotMessage];
 				}
-			})
+			});
 		}
-	}, [currentBotMessage])
+	}, [currentBotMessage]);
 
 	useEffect(() => {
-		console.log('currentUserMessage', currentUserMessage)
+		console.log('currentUserMessage', currentUserMessage);
 		if (currentUserMessage) {
 			setMessages((messages) => {
-				if (messages.filter(m => m?.id === currentUserMessage?.id).length > 0){
-					return messages.map(m => m?.id === currentUserMessage?.id ? currentUserMessage : m)
+				if (
+					messages.filter((m) => m?.id === currentUserMessage?.id)
+						.length > 0
+				) {
+					return messages.map((m) =>
+						m?.id === currentUserMessage?.id
+							? currentUserMessage
+							: m
+					);
 				} else {
-					return [...messages, currentUserMessage]
+					return [...messages, currentUserMessage];
 				}
-			})
+			});
 		}
-	}, [currentUserMessage])
+	}, [currentUserMessage]);
 
-	console.log('messages', messages)
+	console.log('messages', messages);
 
 	useEffect(() => {
 		// if (!connected) return;
@@ -242,306 +286,318 @@ const LivePage = () => {
 			>
 				Stream Realtime
 			</Header>
-
-			<Content
+			<Flex
 				style={{
-					height: '100%',
-					background: colorBgContainer,
-					borderRadius: 20,
+					height: 'calc(100vh - 64px)', // 减去 Header 的高度
+					overflow: 'hidden', // 防止内容溢出
 				}}
 			>
-				<Flex style={{ height: '100%' }}>
-					<Flex
-						vertical
-						flex={1}
-						style={{
-							borderRadius: 20,
-							background: '#fff',
-							position: 'relative',
-						}}
-					>
-						<div className='px-5 py-2'>
-							<Collapse
-								bordered={false}
-								style={{ background: colorBgContainer }}
-								items={[
-									{
-										key: 'prompts',
-										label: 'System Instructions',
-										children: (
-											<Input
-												onChange={(e) =>
-													setPrompt(e.target.value)
-												}
-												value={prompt}
-												placeholder='Optional tone and style instructions for the model'
-											/>
-										),
-										style: panelStyle,
-									},
-								]}
-							/>
-						</div>
-						<div
-							className='messages'
+				<Content
+					style={{
+						background: colorBgContainer,
+						borderRadius: 20,
+						flex: 1,
+						overflow: 'hidden', // 防止内容溢出
+					}}
+				>
+					<Flex style={{ height: '100%' }}>
+						<Flex
+							vertical
+							flex={1}
 							style={{
-								flex: 1,
-								padding: 24,
-								overflowY: 'auto',
-								boxSizing: 'border-box',
 								borderRadius: 20,
+								background: '#fff',
+								position: 'relative',
+								overflow: 'hidden', // 防止内容溢出
 							}}
 						>
-                            <Flex gap="middle" vertical>
-								{messages.map(m => <MessageItem key={m?.id} message={m} />)}
-							</Flex>
-						</div>
-						<Flex justify='center'>
-							<Button
-								color='primary'
-								variant={connected ? 'outlined' : 'solid'}
-								onClick={connected ? handleDisconnect : connect}
-								icon={
-									connected ? (
-										<PauseCircleOutlined />
-									) : (
-										<PoweroffOutlined />
-									)
-								}
-							>
-								{connected
-									? 'Disconnect'
-									: 'Click me to start !'}
-							</Button>
-						</Flex>
-						<div
-							className='px-5 py-2'
-							style={{
-								pointerEvents: !connected ? 'none' : 'auto',
-							}}
-						>
-							<Sender
-								onChange={setTextInput}
-								onSubmit={handleSubmit}
-								value={textInput}
-								disabled={!connected}
-								prefix={
-									<MediaButtons
-										videoRef={videoRef}
-										supportsVideo
-										onVideoStreamChange={setVideoStream}
-									/>
-								}
-							/>
-							{videoStream ? (
-								<video
-									style={{
-										position: 'absolute',
-										top: 70,
-										right: 20,
-										maxWidth: 300,
-										borderRadius: 10,
-										border: '1px solid #333',
-										display: !videoStream ? 'none' : 'auto',
-									}}
-									ref={videoRef}
-									autoPlay
-									playsInline
+							<div className='px-5 py-2'>
+								<Collapse
+									bordered={false}
+									style={{ background: colorBgContainer }}
+									items={[
+										{
+											key: 'prompts',
+											label: 'System Instructions',
+											children: (
+												<Input
+													onChange={(e) =>
+														setPrompt(
+															e.target.value
+														)
+													}
+													value={prompt}
+													placeholder='Optional tone and style instructions for the model'
+												/>
+											),
+											style: panelStyle,
+										},
+									]}
 								/>
-							) : null}
-						</div>
+							</div>
+							<div
+								className='messages'
+								style={{
+									flex: 1,
+									padding: 24,
+									overflowY: 'auto',
+									boxSizing: 'border-box',
+									borderRadius: 20,
+									height: 0, // 确保 flex: 1 生效
+								}}
+							>
+								<Flex gap='middle' vertical>
+									{messages.map((m) => (
+										<MessageItem key={m?.id} message={m} />
+									))}
+								</Flex>
+							</div>
+							<Flex justify='center'>
+								<Button
+									color='primary'
+									variant={connected ? 'outlined' : 'solid'}
+									onClick={
+										connected ? handleDisconnect : connect
+									}
+									icon={
+										connected ? (
+											<PauseCircleOutlined />
+										) : (
+											<PoweroffOutlined />
+										)
+									}
+								>
+									{connected
+										? 'Disconnect'
+										: 'Click me to start !'}
+								</Button>
+							</Flex>
+							<div
+								className='px-5 py-2'
+								style={{
+									pointerEvents: !connected ? 'none' : 'auto',
+								}}
+							>
+								<Sender
+									onChange={setTextInput}
+									onSubmit={handleSubmit}
+									value={textInput}
+									disabled={!connected}
+									prefix={
+										<MediaButtons
+											videoRef={videoRef}
+											supportsVideo
+											onVideoStreamChange={setVideoStream}
+										/>
+									}
+								/>
+								{videoStream ? (
+									<video
+										style={{
+											position: 'absolute',
+											top: 70,
+											right: 20,
+											maxWidth: 300,
+											borderRadius: 10,
+											border: '1px solid #333',
+											display: !videoStream
+												? 'none'
+												: 'auto',
+										}}
+										ref={videoRef}
+										autoPlay
+										playsInline
+									/>
+								) : null}
+							</div>
+						</Flex>
 					</Flex>
-					<Flex
-						vertical
-						gap={32}
+				</Content>
+				<Flex
+					vertical
+					gap={32}
+					style={{
+						width: 250,
+						padding: '10px',
+						overflowY: 'auto',
+						background: colorBgLayout,
+					}}
+				>
+					<div
 						style={{
-							width: 250,
-							padding: '10px',
-							overflowY: 'auto',
-							background: colorBgLayout,
+							fontSize: 16,
+							fontWeight: 500,
 						}}
 					>
-						<div
-							style={{
-								fontSize: 16,
-								fontWeight: 500,
-							}}
-						>
-							Run settings
-						</div>
-						<FieldItem
-							label='Model'
-							icon={<Image src={GeminiIcon} alt={'Model'} />}
-						>
-							<Select
-								popupMatchSelectWidth={false}
-								onChange={setModel}
-								value={model}
-								options={[
-									{
-										value: 'gemini-2.0-flash-exp',
-										label: (
-											<span>
-												<span
-													style={{
-														marginRight: 8,
-													}}
-												>
-													Gemini 2.0 Flash
-													Experimental
-												</span>
-												<Tag
-													style={{
-														marginRight: 0,
-													}}
-													color='#87d068'
-												>
-													New
-												</Tag>
-											</span>
-										),
-									},
-								]}
-							/>
-						</FieldItem>
-						<FieldItem label='Output format'>
-							<Select
-								onChange={setOutPut}
-								value={outPut}
-								options={[
-									{
-										value: 'audio',
-										label: <span>Audio</span>,
-									},
-									{
-										value: 'text',
-										label: <span>Text</span>,
-									},
-								]}
-							/>
-						</FieldItem>
-						<FieldItem label='Voice'>
-							<Select
-								onChange={setVoice}
-								value={voice}
-								options={[
-									{
-										value: 'Puck',
-										label: <span>Puck</span>,
-									},
-									{
-										value: 'Charon',
-										label: <span>Charon</span>,
-									},
-									{
-										value: 'Kore',
-										label: <span>Kore</span>,
-									},
-									{
-										value: 'Fenrir',
-										label: <span>Fenrir</span>,
-									},
-									{
-										value: 'Aoede',
-										label: <span>Aoede</span>,
-									},
-								]}
-							/>
-						</FieldItem>
-						<Collapse
-							bordered={false}
-							style={{ background: colorBgContainer }}
-							activeKey={toolsPaneActive}
-							onChange={(keys) =>
-								setToolsPaneActive(keys as string[])
-							}
-							items={[
+						Run settings
+					</div>
+					<FieldItem
+						label='Model'
+						icon={<Image src={GeminiIcon} alt={'Model'} />}
+					>
+						<Select
+							popupMatchSelectWidth={false}
+							onChange={setModel}
+							value={model}
+							options={[
 								{
-									key: 'tools',
-									label: 'Tools',
-									children: (
-										<Flex
-											vertical
-											gap={8}
-											style={{
-												paddingInlineStart: 24,
-											}}
-										>
-											<FieldItem label='Code Execution'>
-												<Checkbox
-													onChange={(e) => {
-														if (tools) {
-															setTools({
-																...tools,
-																codeExecution:
-																	e.target
-																		.checked,
-															});
-														}
-													}}
-													checked={
-														tools?.codeExecution
-													}
-												/>
-											</FieldItem>
-											<FieldItem label='Function calling'>
-												<Checkbox
-													onChange={(e) => {
-														if (tools) {
-															setTools({
-																...tools,
-																functionCalling:
-																	e.target
-																		.checked,
-															});
-														}
-													}}
-													checked={
-														tools?.functionCalling
-													}
-												/>
-											</FieldItem>
-											<FieldItem label='Automatic Function Response'>
-												<Checkbox
-													onChange={(e) => {
-														if (tools) {
-															setTools({
-																...tools,
-																automaticFunctionResponse:
-																	e.target
-																		.checked,
-															});
-														}
-													}}
-													checked={
-														tools?.automaticFunctionResponse
-													}
-												/>
-											</FieldItem>
-											<FieldItem label='Grounding'>
-												<Checkbox
-													onChange={(e) => {
-														if (tools) {
-															setTools({
-																...tools,
-																grounding:
-																	e.target
-																		.checked,
-															});
-														}
-													}}
-													checked={tools?.grounding}
-												/>
-											</FieldItem>
-										</Flex>
+									value: 'gemini-2.0-flash-exp',
+									label: (
+										<span>
+											<span
+												style={{
+													marginRight: 8,
+												}}
+											>
+												Gemini 2.0 Flash Experimental
+											</span>
+											<Tag
+												style={{
+													marginRight: 0,
+												}}
+												color='#87d068'
+											>
+												New
+											</Tag>
+										</span>
 									),
-									style: panelStyle,
 								},
 							]}
 						/>
-					</Flex>
+					</FieldItem>
+					<FieldItem label='Output format'>
+						<Select
+							onChange={setOutPut}
+							value={outPut}
+							options={[
+								{
+									value: 'audio',
+									label: <span>Audio</span>,
+								},
+								{
+									value: 'text',
+									label: <span>Text</span>,
+								},
+							]}
+						/>
+					</FieldItem>
+					<FieldItem label='Voice'>
+						<Select
+							onChange={setVoice}
+							value={voice}
+							options={[
+								{
+									value: 'Puck',
+									label: <span>Puck</span>,
+								},
+								{
+									value: 'Charon',
+									label: <span>Charon</span>,
+								},
+								{
+									value: 'Kore',
+									label: <span>Kore</span>,
+								},
+								{
+									value: 'Fenrir',
+									label: <span>Fenrir</span>,
+								},
+								{
+									value: 'Aoede',
+									label: <span>Aoede</span>,
+								},
+							]}
+						/>
+					</FieldItem>
+					<Collapse
+						bordered={false}
+						style={{ background: colorBgContainer }}
+						activeKey={toolsPaneActive}
+						onChange={(keys) =>
+							setToolsPaneActive(keys as string[])
+						}
+						items={[
+							{
+								key: 'tools',
+								label: 'Tools',
+								children: (
+									<Flex
+										vertical
+										gap={8}
+										style={{
+											paddingInlineStart: 24,
+										}}
+									>
+										<FieldItem label='Code Execution'>
+											<Checkbox
+												onChange={(e) => {
+													if (tools) {
+														setTools({
+															...tools,
+															codeExecution:
+																e.target
+																	.checked,
+														});
+													}
+												}}
+												checked={tools?.codeExecution}
+											/>
+										</FieldItem>
+										<FieldItem label='Function calling'>
+											<Checkbox
+												onChange={(e) => {
+													if (tools) {
+														setTools({
+															...tools,
+															functionCalling:
+																e.target
+																	.checked,
+														});
+													}
+												}}
+												checked={tools?.functionCalling}
+											/>
+										</FieldItem>
+										<FieldItem label='Automatic Function Response'>
+											<Checkbox
+												onChange={(e) => {
+													if (tools) {
+														setTools({
+															...tools,
+															automaticFunctionResponse:
+																e.target
+																	.checked,
+														});
+													}
+												}}
+												checked={
+													tools?.automaticFunctionResponse
+												}
+											/>
+										</FieldItem>
+										<FieldItem label='Grounding'>
+											<Checkbox
+												onChange={(e) => {
+													if (tools) {
+														setTools({
+															...tools,
+															grounding:
+																e.target
+																	.checked,
+														});
+													}
+												}}
+												checked={tools?.grounding}
+											/>
+										</FieldItem>
+									</Flex>
+								),
+								style: panelStyle,
+							},
+						]}
+					/>
 				</Flex>
-			</Content>
+			</Flex>
 		</Layout>
 	);
 };
