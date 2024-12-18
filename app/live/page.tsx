@@ -1,9 +1,11 @@
 'use client';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { UserOutlined, RobotOutlined } from '@ant-design/icons';
 import { PauseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
-import { StreamingLog } from '@/vendor/multimodal-live-types';
+import { RealtimeInputMessage, ClientContentMessage, ServerContentMessage } from '@/vendor/multimodal-live-types';
+import { base64sToArrayBuffer, pcmBufferToBlob } from '@/vendor/lib/utils';
 
 import {
 	Button,
@@ -16,13 +18,11 @@ import {
 	Tag,
 	Checkbox,
 } from 'antd';
-import { Sender } from '@ant-design/x';
+import { Sender, Bubble } from '@ant-design/x';
 import { useLocalStorageState } from 'ahooks';
 import FieldItem from '@/components/field-item';
 import GeminiIcon from '@/app/icon/google-gemini-icon.svg';
 import Image from 'next/image';
-
-import Logger from '@/components/logger';
 
 const { Header, Content } = Layout;
 
@@ -32,6 +32,16 @@ interface ToolsState {
 	automaticFunctionResponse: boolean;
 	grounding: boolean;
 }
+
+const fooAvatar: React.CSSProperties = {
+	color: '#f56a00',
+	backgroundColor: '#fde3cf',
+};
+
+const barAvatar: React.CSSProperties = {
+	color: '#fff',
+	backgroundColor: '#1677ff',
+};
 
 const LivePage = () => {
 	const {
@@ -46,7 +56,7 @@ const LivePage = () => {
 	// either the screen capture, the video or null, if null we hide it
 	const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
 
-	const { client, config, setConfig, connected, connect, disconnect } =
+	const { client, config, setConfig, connected, connect, disconnect, currentBotMessage, currentUserMessage } =
 		useLiveAPIContext();
 
 	const [textInput, setTextInput] = useState('');
@@ -79,48 +89,42 @@ const LivePage = () => {
 		defaultValue: [],
 	});
 
-	const [messages, setMessages] = useState<StreamingLog[]>([]);
+	type MessgeType = RealtimeInputMessage | ClientContentMessage | ServerContentMessage | null
+
+	const [messages, setMessages] = useState<MessgeType[]>([]);
 
 	const handleSubmit = () => {
 		client.send([{ text: textInput }]);
 		setTextInput('');
 	};
 
-	const log = useCallback(({ date, type, message }: StreamingLog) => {
-		setMessages((state) => {
-			const prevLog = state.at(-1);
-			if (
-				prevLog &&
-				prevLog.type === type &&
-				prevLog.message === message
-			) {
-				return [
-					...state.slice(0, -1),
-					{
-						date,
-						type,
-						message,
-						count: prevLog.count ? prevLog.count + 1 : 1,
-					} as StreamingLog,
-				];
-			}
-			return [
-				...state,
-				{
-					date,
-					type,
-					message,
-				} as StreamingLog,
-			];
-		});
-	}, []);
+	useEffect(() => {
+		console.log('currentBotMessage', currentBotMessage)
+		if (currentBotMessage) {
+			setMessages((messages) => {
+				if (messages.filter(m => m?.id === currentBotMessage?.id).length > 0){
+					return messages.map(m => m?.id === currentBotMessage?.id ? currentBotMessage : m)
+				} else {
+					return [...messages, currentBotMessage]
+				}
+			})
+		}
+	}, [currentBotMessage])
 
 	useEffect(() => {
-		client.on('log', log);
-		return () => {
-			client.off('log', log);
-		};
-	}, [client, log]);
+		console.log('currentUserMessage', currentUserMessage)
+		if (currentUserMessage) {
+			setMessages((messages) => {
+				if (messages.filter(m => m?.id === currentUserMessage?.id).length > 0){
+					return messages.map(m => m?.id === currentUserMessage?.id ? currentUserMessage : m)
+				} else {
+					return [...messages, currentUserMessage]
+				}
+			})
+		}
+	}, [currentUserMessage])
+
+	console.log('messages', messages)
 
 	useEffect(() => {
 		// if (!connected) return;
@@ -220,7 +224,64 @@ const LivePage = () => {
 								borderRadius: 20,
 							}}
 						>
-							<Logger logs={messages} />
+							{messages.map(m => {
+								// @ts-ignore
+								if (m?.clientContent) {
+									return <Bubble
+									    key={m?.id}
+										placement='end'
+										// @ts-ignore
+										content={m?.clientContent.turns?.[0]?.parts.map(p => p.text).join('')}
+										typing={{ step: 2, interval: 50 }}
+										avatar={{
+											icon: <UserOutlined />,
+											style: fooAvatar,
+										}}
+									/>
+								}
+								// @ts-ignore
+								if (m?.serverContent) {
+									// @ts-ignore
+									const content = m?.serverContent.modelTurn?.parts.map(p => p?.text ?? '').join('')
+									// @ts-ignore
+									const audioParts = m?.serverContent.modelTurn?.parts.filter(p => p?.inlineData)
+									let audioComponent = null
+									if (audioParts.length) {
+										// @ts-ignore
+										const base64s = audioParts.map((p) => p.inlineData?.data);
+										const buffer = base64sToArrayBuffer(base64s);
+										const blob = pcmBufferToBlob(buffer, 24000);
+										// TODO 这里会影响渲染性能，可以考虑抽到子组件里面？
+										const audioUrl = URL.createObjectURL(blob);
+										audioComponent = <Bubble
+											key={`audio-{m?.id}`}
+											placement='start'
+											content={<div><audio controls src={audioUrl}></audio></div>}
+											avatar={{
+												icon: <RobotOutlined />,
+												style: barAvatar,
+											}}
+										/>
+									}
+									console.log('audioParts', audioParts)
+									return (
+										<>
+											{content ? <Bubble
+												key={m?.id}
+												placement='start'
+												content={content}
+												typing={{ step: 10, interval: 50 }}
+												avatar={{
+													icon: <RobotOutlined />,
+													style: barAvatar,
+												}}
+											/> : null}
+											{audioComponent}
+										</>
+									)  
+								}
+								return null
+							})}
 						</div>
 						<Flex justify='center'>
 							<Button

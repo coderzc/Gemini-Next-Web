@@ -6,7 +6,6 @@ import { useWebcam } from '@/vendor/hooks/use-webcam';
 import { AudioRecorder } from '@/vendor/lib/audio-recorder';
 import {
 	AudioOutlined,
-	AudioMutedOutlined,
 	VideoCameraOutlined,
 	DesktopOutlined,
 } from '@ant-design/icons';
@@ -177,7 +176,7 @@ function MediaButtons({
 				<Button
 					type={!muted && connected ? 'primary' : 'default'}
 					shape='circle'
-					icon={!muted ? <AudioOutlined /> : <AudioMutedOutlined />}
+					icon={<AudioOutlined />}
 					onClick={() => setMuted(!muted)}
 				/>
 				{supportsVideo && (
