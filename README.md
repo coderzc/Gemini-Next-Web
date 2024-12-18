@@ -2,7 +2,7 @@
 
 <h1 align="center">Gemini-Next-Web</h1>
 
-English / [简体中文]
+English / [简体中文](https://github.com/ElricLiu/Gemini-Next-Web/blob/main/README-CN.md)
 
 One-Click Free Deployment of Your Private Gemini 2.0 Multi-Modal Web Application
 
