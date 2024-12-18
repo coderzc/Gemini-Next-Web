@@ -20,13 +20,15 @@
 
 ## 开始项目
 
-首先，您需要从google aistudio https://aistudio.google.com获取API Key
+首先，您需要从 Google aistudio https://aistudio.google.com 获取 API Key
+
+请注意网络环境。非 Gemini 授权的网络环境将不可用
 
 #### - Vercel 一键部署
 
 [<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=gemini-next-web&repository-name=gemini-next-web)
 
-在 vercel 中设置环境变量NEXT_PUBLIC_GEMINI_API_KEY和 API 密钥
+在 Vercel 中设置环境变量 NEXT_PUBLIC_GEMINI_API_KEY 和 API 密钥
 
 #### - 本地部署
 
@@ -41,11 +43,11 @@ pnpm dev
 # or
 bun dev
 ```
-然后，用浏览器打开http://localhost:3000查看结果。
+然后，用浏览器打开 http://localhost:3000 查看结果。
 
-您可以通过修改app/page.tsx开始编辑页面。当您编辑文件时，页面会自动更新。
+您可以通过修改 app/page.tsx 开始编辑页面。当您编辑文件时，页面会自动更新。
 
-该项目使用next/font自动优化和加载Geist ，这是 Vercel 的新字体系列。
+该项目使用 next/font 自动优化和加载 Geist ，这是 Vercel 的新字体系列。
 
 ### 贡献者
 
