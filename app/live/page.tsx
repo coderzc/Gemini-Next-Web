@@ -28,6 +28,7 @@ import FieldItem from '@/components/field-item';
 import GeminiIcon from '@/app/icon/google-gemini-icon.svg';
 import Image from 'next/image';
 import { GPTVis } from '@antv/gpt-vis';
+import { Part } from '@google/generative-ai';
 
 const { Header, Content } = Layout;
 
@@ -48,23 +49,39 @@ const barAvatar: React.CSSProperties = {
 	backgroundColor: '#1677ff',
 };
 
-type MessgeType =
+type MessageType =
 	| RealtimeInputMessage
 	| ClientContentMessage
 	| ServerContentMessage
 	| null;
 
-const MessageItem = ({ message }: { message: MessgeType }) => {
+const isClientMessage = (
+	message: MessageType
+): message is ClientContentMessage => {
+	return message !== null && 'clientContent' in message;
+};
+
+const isServerMessage = (
+	message: MessageType
+): message is ServerContentMessage => {
+	return message !== null && 'serverContent' in message;
+};
+
+const hasModelTurn = (
+	content: ServerContentMessage['serverContent']
+): content is { modelTurn: { parts: Part[] } } => {
+	return 'modelTurn' in content && content.modelTurn !== null;
+};
+
+const MessageItem: React.FC<{ message: MessageType }> = ({ message }) => {
 	const textComponent = useMemo(() => {
-		// @ts-ignore
-		if (message?.clientContent) {
-			// @ts-ignore
-			const content = message?.clientContent.turns?.[0]?.parts
-				.map((p: any) => p.text)
+		if (isClientMessage(message)) {
+			const content = message.clientContent.turns?.[0]?.parts
+				.map((p) => p.text)
 				.join('');
 			return (
 				<Bubble
-					key={message?.id}
+					key={message.id}
 					placement='end'
 					content={<GPTVis>{content}</GPTVis>}
 					typing={{ step: 2, interval: 50 }}
@@ -75,15 +92,14 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 				/>
 			);
 		}
-		// @ts-ignore
-		if (message?.serverContent) {
-			// @ts-ignore
-			const content = message?.serverContent.modelTurn?.parts
-				.map((p: any) => p?.text ?? '')
+
+		if (isServerMessage(message) && hasModelTurn(message.serverContent)) {
+			const content = message.serverContent.modelTurn.parts
+				.map((p) => p?.text ?? '')
 				.join('');
-			return content ? (
+			return (
 				<Bubble
-					key={message?.id}
+					key={message.id}
 					placement='start'
 					content={<GPTVis>{content}</GPTVis>}
 					typing={{ step: 10, interval: 50 }}
@@ -92,28 +108,26 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 						style: barAvatar,
 					}}
 				/>
-			) : null;
+			);
 		}
 		return null;
 	}, [message]);
 
 	const audioComponent = useMemo(() => {
-		// @ts-ignore
-		if (message?.serverContent) {
-			// @ts-ignore
-			const audioParts = message?.serverContent.modelTurn?.parts.filter(
-				(p: any) => p?.inlineData
+		if (isServerMessage(message) && hasModelTurn(message.serverContent)) {
+			const audioParts = message.serverContent.modelTurn?.parts.filter(
+				(p) => p.inlineData
 			);
 			if (audioParts.length) {
-				// @ts-ignore
-				const base64s = audioParts.map((p) => p.inlineData?.data);
+				const base64s = audioParts
+					.map((p) => p.inlineData?.data)
+					.filter((data): data is string => data !== undefined);
 				const buffer = base64sToArrayBuffer(base64s);
 				const blob = pcmBufferToBlob(buffer, 24000);
-				// TODO 这里会影响渲染性能，可以考虑抽到子组件里面？
 				const audioUrl = URL.createObjectURL(blob);
 				return (
 					<Bubble
-						key={`audio-{message?.id}`}
+						key={`audio-${message.id}`}
 						placement='start'
 						content={
 							<div>
@@ -123,7 +137,7 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 									}}
 									controls
 									src={audioUrl}
-								></audio>
+								/>
 							</div>
 						}
 						avatar={{
@@ -150,7 +164,7 @@ const MessageItem = ({ message }: { message: MessgeType }) => {
 	);
 };
 
-const LivePage = () => {
+const LivePage: React.FC = () => {
 	const {
 		token: {
 			colorBgLayout,
@@ -204,7 +218,7 @@ const LivePage = () => {
 		defaultValue: [],
 	});
 
-	const [messages, setMessages] = useState<MessgeType[]>([]);
+	const [messages, setMessages] = useState<MessageType[]>([]);
 
 	const handleSubmit = () => {
 		client.send([{ text: textInput }]);
@@ -252,7 +266,6 @@ const LivePage = () => {
 	console.log('messages', messages);
 
 	useEffect(() => {
-		// if (!connected) return;
 		const speechConfig = {
 			voiceConfig: {
 				prebuiltVoiceConfig: {
@@ -279,7 +292,7 @@ const LivePage = () => {
 	};
 
 	const handleDisconnect = () => {
-		setVideoStream(null); // 关闭视频预览
+		setVideoStream(null);
 		disconnect();
 	};
 
@@ -301,8 +314,8 @@ const LivePage = () => {
 			</Header>
 			<Flex
 				style={{
-					height: 'calc(100vh - 64px)', // 减去 Header 的高度
-					overflow: 'hidden', // 防止内容溢出
+					height: 'calc(100vh - 64px)',
+					overflow: 'hidden',
 				}}
 			>
 				<Content
@@ -310,7 +323,7 @@ const LivePage = () => {
 						background: colorBgContainer,
 						borderRadius: 20,
 						flex: 1,
-						overflow: 'hidden', // 防止内容溢出
+						overflow: 'hidden',
 					}}
 				>
 					<Flex style={{ height: '100%' }}>
@@ -321,7 +334,7 @@ const LivePage = () => {
 								borderRadius: 20,
 								background: '#fff',
 								position: 'relative',
-								overflow: 'hidden', // 防止内容溢出
+								overflow: 'hidden',
 							}}
 						>
 							<div className='px-5 py-2'>
@@ -356,7 +369,7 @@ const LivePage = () => {
 									overflowY: 'auto',
 									boxSizing: 'border-box',
 									borderRadius: 20,
-									height: 0, // 确保 flex: 1 生效
+									height: 0,
 								}}
 							>
 								<Flex gap='middle' vertical>
