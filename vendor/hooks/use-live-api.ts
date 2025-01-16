@@ -25,6 +25,7 @@ import { audioContext } from "../lib/utils";
 import VolMeterWorket from "../lib/worklets/vol-meter";
 import { GenerativeContentBlob, Part } from "@google/generative-ai";
 import { nanoid } from 'nanoid'
+import { useSpeechService } from "./use-speech-service";
 
 
 export type UseLiveAPIResults = {
@@ -49,6 +50,8 @@ export function useLiveAPI({
   );
   const audioStreamerRef = useRef<AudioStreamer | null>(null);
 
+  const speechService = useSpeechService();
+  
   const [connected, setConnected] = useState(false);
   const [config, setConfig] = useState<LiveConfig>({
     model: "models/gemini-2.0-flash-exp",
@@ -82,6 +85,7 @@ export function useLiveAPI({
   useEffect(() => {
     const onClose = () => {
       setConnected(false);
+      speechService.cancel();
     };
 
     const stopAudioStreamer = () => audioStreamerRef.current?.stop();
@@ -134,6 +138,12 @@ export function useLiveAPI({
     const onContent = (content: ModelTurn) => {
       // 文本输出，将文本放到bot message里面
       if (content.modelTurn?.parts) {
+        content.modelTurn.parts.forEach(part => {
+          if (part.text) {
+            speechService.handleNewMessage(currnetBotMessageId, part.text)
+          }
+        })  
+
         botContentParts.current.push(...content.modelTurn?.parts)  
         // 这里需要先设置文本消息，支持实时的打字机效果
         setCurrentBotMessage({
@@ -146,7 +156,7 @@ export function useLiveAPI({
           id: currnetBotMessageId,
         })
       }
-		}
+    }
 		const onInterrupted = () => {
 			// 这个事件应该表示的是，机器人的语音消息被打断？实际上应该算用户语音输入开始
 			console.log('onInterrupted')
@@ -165,6 +175,7 @@ export function useLiveAPI({
 		const onTurnComplete = () => {
 			// 这个事件表示机器人生成的消息结束了，不管是文本结束还是语音结束，都有这个消息
 			console.log('onTurnComplete')
+      // speechService.handleNewMessage(currnetBotMessageId, '.')
 			if (botContentParts.current?.length || botAudioParts.current?.length) {
         setCurrentBotMessage({
           serverContent: {

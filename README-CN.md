@@ -6,17 +6,15 @@
 
 [English](https://github.com/ElricLiu/Gemini-Next-Web) / 简体中文
 
-一键免费部署您的私人 Gemini 2.0 多模态网页应用
-
-随时随地在电脑和移动设备上访问。
-
-[演示](https://www.gemininextweb.com/) / [反馈](https://github.com/ElricLiu/Gemini-Next-Web/issues) / [QQ](https://qm.qq.com/q/Bxx3eI3ilW) / [赞赏](https://www.buymeacoffee.com/elricliu)
-
-[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=gemini-next-web&repository-name=gemini-next-web)
-
-![cover](https://github.com/user-attachments/assets/0dc224c0-52dd-4b40-bd08-8c744b267803)
+<img width="1912" alt="image" src="https://github.com/user-attachments/assets/e8661093-e827-4125-8e1e-02623170968e" />
 
 </div>
+
+**在原项目基础上扩展了一些功能：**
+
+1. **增加页面配置 Gemni API KEY**
+2. **增加代理地址可配**
+3. **增加 TTS 转中文语音支持 ，选择 TTS 模式，原生的语音不支持说中文，使用Azure TTS 来实现中文的支持** ([如何获取 Azure TTS API-KEY](https://learn.microsoft.com/zh-cn/azure/ai-services/speech-service/get-started-speech-to-text?tabs=macos%2Cterminal&pivots=programming-language-javascript#prerequisites)) 
 
 ## 开始项目
 
@@ -26,7 +24,7 @@
 
 #### - Vercel 一键部署
 
-[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=gemini-next-web&repository-name=gemini-next-web)
+[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/coderzc/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=gemini-next-web&repository-name=gemini-next-web)
 
 在 Vercel 中设置环境变量 NEXT_PUBLIC_GEMINI_API_KEY 和 API 密钥
 
@@ -51,7 +49,7 @@ bun dev
 
 ### 贡献者
 
-<a href="https://github.com/ElricLiu/Gemini-Next-Web/graphs/contributors">
+<a href="https://github.com/coderzc/Gemini-Next-Web/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ElricLiu/Gemini-Next-Web" />
 </a>
 

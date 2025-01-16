@@ -71,6 +71,11 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 	public ws: WebSocket | null = null;
 	protected config: LiveConfig | null = null;
 	public url: string = '';
+	private reconnectAttempts = 0;
+	private maxReconnectAttempts = 5;
+	private reconnectTimer: NodeJS.Timeout | null = null;
+	private isReconnecting = false;
+
 	public getConfig() {
 		return { ...this.config };
 	}
@@ -85,6 +90,42 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 		this.send = this.send.bind(this);
 	}
 
+	// 计算重连延迟时间（指数退避）
+	private getReconnectDelay(): number {
+		return Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // 最大30秒
+	}
+
+	// 尝试重连
+	private async tryReconnect() {
+		console.log('tryReconnect', this.isReconnecting, this.config);
+		if (this.isReconnecting || !this.config) {
+			return;
+		}
+
+		if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+			throw new Error('Max reconnect attempts reached');
+		}
+
+		this.isReconnecting = true;
+		this.reconnectAttempts++;
+
+		const delay = this.getReconnectDelay();
+		console.log(`[WebSocket] Reconnecting attempt ${this.reconnectAttempts} in ${delay}ms...`);
+		
+		this.reconnectTimer = setTimeout(async () => {
+			try {
+				await this.connect(this.config!);
+				this.reconnectAttempts = 0;
+				this.isReconnecting = false;
+				console.log('[WebSocket] Reconnected successfully');
+			} catch (error) {
+				console.error('[WebSocket] Reconnection failed:', error);
+				this.isReconnecting = false;
+				this.tryReconnect();
+			}
+		}, delay);
+	}
+
 	log(type: string, message: StreamingLog['message']) {
 		const log: StreamingLog = {
 			date: new Date(),
@@ -97,6 +138,12 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 	connect(config: LiveConfig): Promise<boolean> {
 		this.config = config;
 
+		// 清理之前的重连定时器
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer);
+			this.reconnectTimer = null;
+		}
+
 		const ws = new WebSocket(this.url);
 
 		ws.addEventListener('message', async (evt: MessageEvent) => {
@@ -106,6 +153,7 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 				console.log('non blob message', evt);
 			}
 		});
+
 		return new Promise((resolve, reject) => {
 			const onError = (ev: Event) => {
 				this.disconnect(ws);
@@ -113,6 +161,7 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 				this.log(`server.${ev.type}`, message);
 				reject(new Error(message));
 			};
+
 			ws.addEventListener('error', onError);
 			ws.addEventListener('open', (ev: Event) => {
 				if (!this.config) {
@@ -157,6 +206,13 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 	}
 
 	disconnect(ws?: WebSocket) {
+		// 清理重连状态
+		this.isReconnecting = false;
+		if (this.reconnectTimer) {
+			clearTimeout(this.reconnectTimer);
+			this.reconnectTimer = null;
+		}
+
 		// could be that this is an old websocket and theres already a new instance
 		// only close it if its still the correct reference
 		if ((!ws || this.ws === ws) && this.ws) {
@@ -245,43 +301,41 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 		}
 	}
 
-	/**
-	 * send realtimeInput, this is base64 chunks of "audio/pcm" and/or "image/jpg"
-	 */
-	sendRealtimeInput(chunks: GenerativeContentBlob[]) {
-		let hasAudio = false;
-		let hasVideo = false;
+  /**
+   * send realtimeInput, this is base64 chunks of "audio/pcm" and/or "image/jpg"
+   */
+  sendRealtimeInput(chunks: GenerativeContentBlob[]) {
+    let hasAudio = false;
+    let hasVideo = false;
+    for (let i = 0; i < chunks.length; i++) {
+      const ch = chunks[i];
+      if (ch.mimeType.includes("audio")) {
+        hasAudio = true;
+      }
+      if (ch.mimeType.includes("image")) {
+        hasVideo = true;
+      }
+      if (hasAudio && hasVideo) {
+        break;
+      }
+    }
+    const message =
+      hasAudio && hasVideo
+        ? "audio + video"
+        : hasAudio
+          ? "audio"
+          : hasVideo
+            ? "video"
+            : "unknown";
 
-		for (let i = 0; i < chunks.length; i++) {
-			const ch = chunks[i];
-			if (ch.mimeType.includes('audio')) {
-				hasAudio = true;
-			}
-			if (ch.mimeType.includes('image')) {
-				hasVideo = true;
-			}
-			if (hasAudio && hasVideo) {
-				break;
-			}
-		}
-		const message =
-			hasAudio && hasVideo
-				? 'audio + video'
-				: hasAudio
-				? 'audio'
-				: hasVideo
-				? 'video'
-				: 'unknown';
-
-		const data: RealtimeInputMessage = {
-			realtimeInput: {
-				mediaChunks: chunks,
-			},
-		};
-		this._sendDirect(data);
-		this.emit('input', data);
-		this.log(`client.realtimeInput`, message);
-	}
+    const data: RealtimeInputMessage = {
+      realtimeInput: {
+        mediaChunks: chunks,
+      },
+    };
+    this._sendDirect(data);
+    this.log(`client.realtimeInput`, message);
+  }
 
 	/**
 	 *  send a response to a function call and provide the id of the functions you are responding to
@@ -300,9 +354,18 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 	 */
 	send(parts: Part | Part[], turnComplete: boolean = true) {
 		parts = Array.isArray(parts) ? parts : [parts];
+		const formattedParts = parts.map(part => {
+            if (typeof part === 'string') {
+                return { text: part };
+            } else if (typeof part === 'object' && !part.text && !part.inlineData) {
+                return { text: JSON.stringify(part) };
+            }
+            return part;
+        });
+
 		const content: Content = {
 			role: 'user',
-			parts,
+			parts: formattedParts,
 		};
 
 		const clientContentRequest: ClientContentMessage = {
@@ -323,9 +386,13 @@ export class MultimodalLiveClient extends EventEmitter<MultimodalLiveClientEvent
 	 */
 	_sendDirect(request: object) {
 		if (!this.ws) {
-			throw new Error('WebSocket is not connected');
+			throw new Error('No websocket connection');
 		}
 		const str = JSON.stringify(request);
-		this.ws.send(str);
+		try {
+			this.ws?.send(str);
+		} catch (error) {
+			console.error('[WebSocket] Failed to send message:', error);
+		}
 	}
 }

@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { UserOutlined, RobotOutlined } from '@ant-design/icons';
-import { PauseCircleOutlined, PoweroffOutlined } from '@ant-design/icons';
 import MediaButtons from '@/components/media-buttons';
 import { useLiveAPIContext } from '@/vendor/contexts/LiveAPIContext';
 import {
@@ -12,7 +11,6 @@ import {
 import { base64sToArrayBuffer, pcmBufferToBlob } from '@/vendor/lib/utils';
 
 import {
-	Button,
 	Layout,
 	theme,
 	Collapse,
@@ -29,6 +27,8 @@ import GeminiIcon from '@/app/icon/google-gemini-icon.svg';
 import Image from 'next/image';
 import { GPTVis } from '@antv/gpt-vis';
 import { Part } from '@google/generative-ai';
+import { getVoiceOptions } from '@/vendor/hooks/use-speech-service';
+
 
 const { Header, Content } = Layout;
 
@@ -174,7 +174,7 @@ const LivePage: React.FC = () => {
 		},
 	} = theme.useToken();
 	const videoRef = useRef<HTMLVideoElement>(null);
-	// either the screen capture, the video or null, if null we hide it
+	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
 
 	const {
@@ -182,8 +182,6 @@ const LivePage: React.FC = () => {
 		config,
 		setConfig,
 		connected,
-		connect,
-		disconnect,
 		currentBotMessage,
 		currentUserMessage,
 	} = useLiveAPIContext();
@@ -196,11 +194,20 @@ const LivePage: React.FC = () => {
 	const [model, setModel] = useLocalStorageState('model', {
 		defaultValue: 'gemini-2.0-flash-exp',
 	});
-	const [outPut, setOutPut] = useLocalStorageState('output', {
-		defaultValue: 'audio',
+	const [audioMode, setAudioMode] = useLocalStorageState('audioMode', {
+		defaultValue: 'text',
 	});
 	const [voice, setVoice] = useLocalStorageState('voice', {
+		defaultValue: 'zh-CN-XiaoxiaoNeural',
+	});
+	const [nativeVoice, setNativeVoice] = useLocalStorageState('nativeVoice', {
 		defaultValue: 'Puck',
+	});
+	const [azureKey, setAzureKey] = useLocalStorageState('azure-speech-key', {
+		defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY || '',
+	});
+	const [azureRegion, setAzureRegion] = useLocalStorageState('azure-speech-region', {
+		defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION || 'eastasia',
 	});
 
 	const [tools, setTools] = useLocalStorageState<ToolsState>('tools', {
@@ -221,21 +228,16 @@ const LivePage: React.FC = () => {
 	const [messages, setMessages] = useState<MessageType[]>([]);
 
 	const handleSubmit = () => {
+		if (!textInput.trim()) return;
 		client.send([{ text: textInput }]);
 		setTextInput('');
 	};
 
 	useEffect(() => {
-		console.log('currentBotMessage', currentBotMessage);
 		if (currentBotMessage) {
 			setMessages((messages) => {
-				if (
-					messages.filter((m) => m?.id === currentBotMessage?.id)
-						.length > 0
-				) {
-					return messages.map((m) =>
-						m?.id === currentBotMessage?.id ? currentBotMessage : m
-					);
+				if (messages.filter((m) => m?.id === currentBotMessage?.id).length > 0) {
+					return messages.map((m) => m?.id === currentBotMessage?.id ? currentBotMessage : m);
 				} else {
 					return [...messages, currentBotMessage];
 				}
@@ -244,18 +246,10 @@ const LivePage: React.FC = () => {
 	}, [currentBotMessage]);
 
 	useEffect(() => {
-		console.log('currentUserMessage', currentUserMessage);
 		if (currentUserMessage) {
 			setMessages((messages) => {
-				if (
-					messages.filter((m) => m?.id === currentUserMessage?.id)
-						.length > 0
-				) {
-					return messages.map((m) =>
-						m?.id === currentUserMessage?.id
-							? currentUserMessage
-							: m
-					);
+				if (messages.filter((m) => m?.id === currentUserMessage?.id).length > 0) {
+					return messages.map((m) => m?.id === currentUserMessage?.id ? currentUserMessage : m);
 				} else {
 					return [...messages, currentUserMessage];
 				}
@@ -263,27 +257,23 @@ const LivePage: React.FC = () => {
 		}
 	}, [currentUserMessage]);
 
-	console.log('messages', messages);
-
 	useEffect(() => {
-		const speechConfig = {
-			voiceConfig: {
-				prebuiltVoiceConfig: {
-					voiceName: voice,
-				},
-			},
-		};
 		const generationConfig = {
 			...config?.generationConfig,
-			speechConfig,
-			responseModalities: outPut,
+			responseModalities: audioMode,
+			speechConfig: {
+				voiceConfig: {
+					prebuiltVoiceConfig: {
+						voiceName: nativeVoice,
+					},
+				},
+			},
 		} as typeof config.generationConfig;
 		const systemInstruction = prompt
 			? { parts: [{ text: prompt }] }
 			: undefined;
 		setConfig({ ...config, generationConfig, systemInstruction });
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [connected, prompt, model, outPut, voice]);
+	}, [connected, prompt, model, nativeVoice, audioMode]);
 
 	const panelStyle: React.CSSProperties = {
 		background: colorFillAlter,
@@ -291,10 +281,13 @@ const LivePage: React.FC = () => {
 		border: 'none',
 	};
 
-	const handleDisconnect = () => {
-		setVideoStream(null);
-		disconnect();
+	const scrollToBottom = () => {
+		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	};
+
+	useEffect(() => {
+		scrollToBottom();
+	}, [messages]);
 
 	return (
 		<Layout
@@ -376,28 +369,9 @@ const LivePage: React.FC = () => {
 									{messages.map((m) => (
 										<MessageItem key={m?.id} message={m} />
 									))}
+									<div ref={messagesEndRef} />
 								</Flex>
 							</div>
-							<Flex justify='center'>
-								<Button
-									color='primary'
-									variant={connected ? 'outlined' : 'solid'}
-									onClick={
-										connected ? handleDisconnect : connect
-									}
-									icon={
-										connected ? (
-											<PauseCircleOutlined />
-										) : (
-											<PoweroffOutlined />
-										)
-									}
-								>
-									{connected
-										? 'Disconnect'
-										: 'Click me to start !'}
-								</Button>
-							</Flex>
 							<div
 								className='px-5 py-2'
 								style={{
@@ -491,49 +465,62 @@ const LivePage: React.FC = () => {
 							]}
 						/>
 					</FieldItem>
-					<FieldItem label='Output format'>
+					<FieldItem
+						label='Audio/TTS'
+						icon={<RobotOutlined />}
+					>
 						<Select
-							onChange={setOutPut}
-							value={outPut}
+							value={audioMode}
+							onChange={setAudioMode}
 							options={[
-								{
-									value: 'audio',
-									label: <span>Audio</span>,
-								},
-								{
-									value: 'text',
-									label: <span>Text</span>,
-								},
+								{ value: 'text', label: 'TTS' },
+								{ value: 'audio', label: 'Native Audio' }
 							]}
 						/>
 					</FieldItem>
-					<FieldItem label='Voice'>
-						<Select
-							onChange={setVoice}
-							value={voice}
-							options={[
-								{
-									value: 'Puck',
-									label: <span>Puck</span>,
-								},
-								{
-									value: 'Charon',
-									label: <span>Charon</span>,
-								},
-								{
-									value: 'Kore',
-									label: <span>Kore</span>,
-								},
-								{
-									value: 'Fenrir',
-									label: <span>Fenrir</span>,
-								},
-								{
-									value: 'Aoede',
-									label: <span>Aoede</span>,
-								},
-							]}
+					{audioMode === 'text' && (
+					<FieldItem label='Azure Speech Key'>
+					
+						<Input.Password
+							value={azureKey}
+							onChange={(e) => setAzureKey(e.target.value)}
+							placeholder="Enter Azure Speech Key"
 						/>
+					
+					</FieldItem>
+				    )}
+					{audioMode === 'text' && (
+					<FieldItem label='Azure Region'>
+					
+						<Input
+							value={azureRegion}
+							onChange={(e) => setAzureRegion(e.target.value)}
+							placeholder="e.g. eastus"
+						/>
+					</FieldItem>
+					)}
+					{audioMode === 'text' && (
+						<FieldItem label='Voice'>
+							<Select
+								onChange={setVoice}
+								value={voice}
+								options={getVoiceOptions()}
+							/>
+						</FieldItem>
+					)}
+					<FieldItem label='Native Voice'>
+					{audioMode === 'audio' && (
+						<Select
+							onChange={setNativeVoice}
+							value={nativeVoice}
+							options={[{value: 'Puck', label: 'Puck',
+							}, {value: 'Charon', label: 'Charon',
+							}, {value: 'Aoede', label: 'Aoede',
+							}, {value: 'Fenrir', label: 'Fenrir',
+							}, {value: 'Kore', label: 'Kore',
+							}]}
+						/>
+					)}
 					</FieldItem>
 					<Collapse
 						bordered={false}
@@ -628,4 +615,4 @@ const LivePage: React.FC = () => {
 	);
 };
 
-export default LivePage;
+export default LivePage; 
