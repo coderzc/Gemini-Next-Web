@@ -4,19 +4,20 @@
 
 <h1 align="center">Gemini-Next-Web</h1>
 
-English / [简体中文](https://github.com/ElricLiu/Gemini-Next-Web/blob/main/README-CN.md)
+English / [简体中文](https://github.com/coderzc/Gemini-Next-Web/blob/main/README-CN.md)
 
-One-Click Free Deployment of Your Private Gemini 2.0 Multi-Modal Web Application
+<img width="1912" alt="image" src="https://github.com/user-attachments/assets/e8661093-e827-4125-8e1e-02623170968e" />
 
-Accessible anytime on both computer and mobile devices.
-
-[Demo](https://www.gemininextweb.com/) / [Issues](https://github.com/ElricLiu/Gemini-Next-Web/issues) / [Join Discord](https://discord.gg/XMwSFHfm7u) / [Buy Me a Coffee](https://www.buymeacoffee.com/elricliu)
-
-[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=gemini-next-web&repository-name=gemini-next-web)
-
-![cover](https://github.com/user-attachments/assets/0dc224c0-52dd-4b40-bd08-8c744b267803)
 
 </div>
+
+**On the basis of the original project, some features have been extended:**
+
+1. **Add page configuration Gemni API KEY**
+
+2. **Add proxy address configurable**
+
+3. **Add TTS to Chinese voice support, select TTS mode, the native voice does not support Chinese, use Microsoft TTS to realize Chinese support. [How to get the Azure TTS API-KEY](https://learn.microsoft.com/zh-cn/azure/ai-services/speech-service/get-started-speech-to-text?tabs=macos%2Cterminal&pivots=programming-language-javascript#prerequisites)**
 
 
 
@@ -27,7 +28,7 @@ Please pay attention to the network environment. Non-Gemini authorized network e
 
 #### - Vercel one-click deployment
 
-[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/ElricLiu/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=gemini-next-web&repository-name=gemini-next-web)
+[<img src="https://vercel.com/button" alt="Deploy on Vercel" height="30">](https://vercel.com/new/clone?repository-url=https://github.com/coderzc/Gemini-Next-Web&env=NEXT_PUBLIC_GEMINI_API_KEY&project-name=gemini-next-web&repository-name=gemini-next-web)
 
 Set you Environment Variables `NEXT_PUBLIC_GEMINI_API_KEY` & API Key in vercel
 
@@ -52,7 +53,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 ### Contributors
 
-<a href="https://github.com/ElricLiu/Gemini-Next-Web/graphs/contributors">
+<a href="https://github.com/coderzc/Gemini-Next-Web/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=ElricLiu/Gemini-Next-Web" />
 </a>
 
