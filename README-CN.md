@@ -6,7 +6,7 @@
 
 [English](https://github.com/ElricLiu/Gemini-Next-Web) / 简体中文
 
-<img width="1912" alt="image" src="https://github.com/user-attachments/assets/e8661093-e827-4125-8e1e-02623170968e" />
+<img width="1909" alt="image" src="https://github.com/user-attachments/assets/68ab0d66-57bb-4594-8009-92fe6c50244d" />
 
 </div>
 
