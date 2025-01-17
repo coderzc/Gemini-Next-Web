@@ -23,29 +23,37 @@ export const getVoiceOptions = (): VoiceGroup[] => [
         label: React.createElement('span', null, '晓晓 (女声)'),
       },
       {
-        value: 'zh-CN-YunxiNeural',
-        label: React.createElement('span', null, '云希 (男声)'),
-      },
-      {
-        value: 'zh-CN-XiaochenNeural',
-        label: React.createElement('span', null, '晓辰 (女声)'),
-      },
-      {
-        value: 'zh-CN-YunyangNeural',
-        label: React.createElement('span', null, '云扬 (男声)'),
+        value: 'zh-CN-XiaoxiaoMultilingualNeural',
+        label: React.createElement('span', null, '晓晓2 (女声)'),
       },
       {
         value: 'zh-CN-XiaomengNeural',
         label: React.createElement('span', null, '晓萌 (女声)'),
       },
       {
+        value: 'zh-CN-XiaochenMultilingualNeura',
+        label: React.createElement('span', null, '晓辰 (女声)'),
+      },
+      {
+        value: 'zh-CN-XiaoyuMultilingualNeural',
+        label: React.createElement('span', null, '晓雨 (女声)'),
+      },
+      {
+        value: 'zh-CN-YunyiMultilingualNeural',
+        label: React.createElement('span', null, '云逸 (男声)'),
+      },
+      {
+        value: 'zh-CN-YunjianNeural',
+        label: React.createElement('span', null, '云健 (男声)'),
+      },
+      {
+        value: 'zh-CN-YunxiNeural',
+        label: React.createElement('span', null, '云希 (男声)'),
+      },
+      {
         value: 'zh-CN-liaoning-YunbiaoNeural',
         label: React.createElement('span', null, '云彪 (男声)'),
       },
-      {
-        value: 'zh-TW-HsiaoChenNeural',
-        label: React.createElement('span', null, '晓辰 (女声)'),
-      }
     ],
   },
   {
@@ -84,35 +92,41 @@ export function useSpeechService() {
     defaultValue: 'zh-CN-XiaoxiaoNeural',
     listenStorageChange: true,
   });
-  const currentVoiceRef = useRef(voice);
   const [subscriptionKey = ''] = useLocalStorageState<string>('azure-speech-key', {
     defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY || '',
+    listenStorageChange: true,
   });
   const [region = 'eastasia'] = useLocalStorageState<string>('azure-speech-region', {
     defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION || 'eastasia',
+    listenStorageChange: true,
   });
+  const currentVoiceRef = useRef(voice);
+  const currentSubscriptionKeyRef = useRef(subscriptionKey);
+  const currentRegionRef = useRef(region);
 
   // 初始化语音合成器
   const initSynthesizer = useCallback(() => {
-    if (!subscriptionKey || !region) {
+    if (!currentSubscriptionKeyRef.current || !currentRegionRef.current) {
       console.error('[Speech] Missing credentials');
       return;
     }
 
     synthesizer.current?.close();
-    const speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, region);
+    const speechConfig = sdk.SpeechConfig.fromSubscription(currentSubscriptionKeyRef.current, currentRegionRef.current);
 
     speechConfig.speechSynthesisVoiceName = currentVoiceRef.current;
     speechConfig.speechSynthesisLanguage = currentVoiceRef.current.split('-')[0] + '-' + currentVoiceRef.current.split('-')[1];
     playerRef.current = new sdk.SpeakerAudioDestination();
     const audioConfig = sdk.AudioConfig.fromSpeakerOutput(playerRef.current);
     synthesizer.current = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
-  }, [subscriptionKey, region, voice ]);
+  }, [subscriptionKey, region, voice]);
 
   // 初始化
   useEffect(() => {
     console.log('[Speech] Voice changed to:', voice);
     currentVoiceRef.current = voice;
+    currentSubscriptionKeyRef.current = subscriptionKey;
+    currentRegionRef.current = region;
     initSynthesizer();
   }, [initSynthesizer]);
 
