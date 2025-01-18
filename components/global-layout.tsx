@@ -150,7 +150,7 @@ const GlobalLayout: React.FC<{
 	const router = useRouter();
 	const pathname = usePathname();
 	const [host, setHost] = useLocalStorageState<string>('gemini-host', {
-		defaultValue: process.env.NEXT_PUBLIC_GEMINI_HOST || 'coderzc-gemini-play.deno.dev'
+		defaultValue: process.env.NEXT_PUBLIC_GEMINI_HOST || 'generativelanguage.googleapis.com'
 	});
 	const [apiKey, setApiKey] = useLocalStorageState<string>('gemini-api-key', {
 		defaultValue: process.env.NEXT_PUBLIC_GEMINI_API_KEY || ''
