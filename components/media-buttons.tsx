@@ -9,7 +9,9 @@ import {
 	VideoCameraOutlined,
 	DesktopOutlined,
 } from '@ant-design/icons';
-import { Button } from 'antd';
+import { Button, Select } from 'antd';
+
+const { Option } = Select;
 
 export type MediaButtonsProps = {
 	videoRef: RefObject<HTMLVideoElement>;
@@ -66,6 +68,8 @@ function MediaButtons({
 	const [audioRecorder] = useState(() => new AudioRecorder());
 	const [muted, setMuted] = useState(DEFAULT_MUTED_STATE); 
 	const renderCanvasRef = useRef<HTMLCanvasElement>(null);
+	const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
+	const [selectedDeviceId, setSelectedDeviceId] = useState<string>('');
 
 	const { client, connected } = useLiveAPIContext();
 
@@ -156,11 +160,11 @@ function MediaButtons({
 	}, [connected, activeVideoStream, client, videoRef]);
 
 	//handler for swapping from one video-stream to the next
-	const changeStreams = (next?: UseMediaStreamResult) => async () => {
+	const changeStreams = (next?: UseMediaStreamResult, constraints?: MediaStreamConstraints) => async () => {
 		if (!connected) return;
 
 		if (next) {
-			const mediaStream = await next.start();
+			const mediaStream = await next.start(constraints);
 			setActiveVideoStream(mediaStream);
 			onVideoStreamChange(mediaStream);
 		} else {
@@ -170,6 +174,32 @@ function MediaButtons({
 
 		videoStreams.filter((msr) => msr !== next).forEach((msr) => msr.stop());
 	};
+
+	// 获取所有视频输入设备
+	useEffect(() => {
+		async function getDevices() {
+			try {
+				const devices = await navigator.mediaDevices.enumerateDevices();
+				const videoInputs = devices.filter(device => device.kind === 'videoinput');
+				setVideoDevices(videoInputs);
+				
+				// 如果有设备，默认选择第一个
+				if (videoInputs.length > 0 && !selectedDeviceId) {
+					setSelectedDeviceId(videoInputs[0].deviceId);
+				}
+			} catch (err) {
+				console.error('Error getting devices:', err);
+			}
+		}
+
+		getDevices();
+		
+		// 监听设备变化
+		navigator.mediaDevices.addEventListener('devicechange', getDevices);
+		return () => {
+			navigator.mediaDevices.removeEventListener('devicechange', getDevices);
+		};
+	}, []);
 
 	return (
 		<div className='control-tray'>
@@ -184,19 +214,43 @@ function MediaButtons({
 				{supportsVideo && (
 					<>
 						<MediaStreamButton
-							isStreaming={webcam.isStreaming}
-							start={changeStreams(webcam)}
-							stop={changeStreams()}
-							onIcon={<VideoCameraOutlined />}
-							offIcon={<VideoCameraOutlined />}
-						/>
-						<MediaStreamButton
 							isStreaming={screenCapture.isStreaming}
 							start={changeStreams(screenCapture)}
 							stop={changeStreams()}
 							onIcon={<DesktopOutlined />}
 							offIcon={<DesktopOutlined />}
 						/>
+						<MediaStreamButton
+							isStreaming={webcam.isStreaming}
+							start={changeStreams(webcam, {
+								video: {
+									deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined
+								}
+							})}
+							stop={changeStreams()}
+							onIcon={<VideoCameraOutlined />}
+							offIcon={<VideoCameraOutlined />}
+						/>
+						<Select 
+							value={selectedDeviceId}
+							style={{ width: 200, marginLeft: 10 }}
+							onChange={(value) => {
+								setSelectedDeviceId(value);
+								if (webcam.isStreaming) {
+									// 使用 changeStreams 来切换设备
+									changeStreams(webcam, {
+										video: {
+											deviceId: { exact: value }
+										}
+									})();
+								}
+							}}>
+							{videoDevices.map(device => (
+								<Option key={device.deviceId} value={device.deviceId}>
+									{device.label || `Camera ${device.deviceId.slice(0, 5)}...`}
+								</Option>
+							))}
+						</Select>
 					</>
 				)}
 				{children}

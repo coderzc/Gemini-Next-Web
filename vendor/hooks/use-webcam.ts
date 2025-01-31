@@ -40,10 +40,15 @@ export function useWebcam(): UseMediaStreamResult {
     }
   }, [stream]);
 
-  const start = async () => {
-    const mediaStream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-    });
+  const start = async (constraints?: MediaStreamConstraints) => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
+    
+    const mediaStream = await navigator.mediaDevices.getUserMedia(
+      constraints || { video: true }
+    );
+    
     setStream(mediaStream);
     setIsStreaming(true);
     return mediaStream;

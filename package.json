@@ -35,6 +35,7 @@
 		"@ant-design/x": "^1.0.2",
 		"@antv/gpt-vis": "^0.3.4",
 		"@google/generative-ai": "^0.21.0",
+		"@lobehub/tts": "^1.28.0",
 		"@types/lodash": "^4.17.13",
 		"ahooks": "^3.8.4",
 		"antd": "^5.22.5",
@@ -45,7 +46,8 @@
 		"nanoid": "^5.0.9",
 		"next": "14.2.20",
 		"react": "^18",
-		"react-dom": "^18"
+		"react-dom": "^18",
+		"react-draggable": "^4.4.6"
 	},
 	"devDependencies": {
 		"@types/lodash-es": "^4.17.12",
