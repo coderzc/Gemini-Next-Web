@@ -11,8 +11,7 @@ export async function POST(req: Request) {
     const { password } = await req.json();
     const accessCode = process.env.ACCESS_CODE;
 
-    log('[Auth] accessCode:' + accessCode);
-    log('[Auth] process.env:' + process.env);
+    log('[Auth] auth request' + req.headers);
 
     if (!accessCode) {
       return new NextResponse('未配置访问密码', { status: 500 });

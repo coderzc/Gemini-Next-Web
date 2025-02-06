@@ -22,15 +22,6 @@ const LiveAPIProvider = ({ children, url: propUrl, apiKey: propApiKey }: Props) 
 		// 获取配置
 		fetch('/api/x1')
 			.then((res) => {
-				// 显示服务器日志
-				const serverLogs = res.headers.get('X-Server-Logs');
-				if (serverLogs) {
-					console.log('Server Logs:', JSON.parse(serverLogs));
-				}
-				const debugInfo = res.headers.get('X-Debug-Info');
-				if (debugInfo) {
-					console.log('Server Debug Info:', JSON.parse(debugInfo));
-				}
 				return res.json();
 			})
 			.then((data) => {
