@@ -24,14 +24,28 @@ const LiveAPIProvider = ({ children, url: propUrl, apiKey: propApiKey }: Props) 
 			.then((res) => res.json())
 			.then((data) => {
 				try {
+					if (!data || !data.data) {
+						throw new Error('Invalid response format');
+					}
 					const decryptedConfig = JSON.parse(decrypt(data.data));
+					if (!decryptedConfig || !decryptedConfig.apiKey) {
+						throw new Error('Invalid config format');
+					}
 					setConfig(decryptedConfig);
 				} catch (error) {
 					console.error('Failed to decrypt config:', error);
+					setConfig({
+						host: 'generativelanguage.googleapis.com',
+						apiKey: '',  // 清空 API key 以触发错误提示
+					});
 				}
 			})
 			.catch((err) => {
 				console.error('Failed to load config:', err);
+				setConfig({
+					host: 'generativelanguage.googleapis.com',
+					apiKey: '',  // 清空 API key 以触发错误提示
+				});
 			})
 			.finally(() => {
 				setIsLoading(false);
@@ -54,7 +68,20 @@ const LiveAPIProvider = ({ children, url: propUrl, apiKey: propApiKey }: Props) 
 	}
 
 	if (!propApiKey && !config.apiKey) {
-		throw new Error('API key not found');
+		console.error('API key not found, config:', config);
+		return (
+			<div style={{ 
+				height: '100vh', 
+				display: 'flex', 
+				justifyContent: 'center', 
+				alignItems: 'center',
+				flexDirection: 'column',
+				gap: '1rem'
+			}}>
+				<div>Error: API key not found</div>
+				<div>Please check your configuration</div>
+			</div>
+		);
 	}
 
 	return (
