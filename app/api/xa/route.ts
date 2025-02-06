@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { encrypt } from '@/vendor/lib/crypto';
+import { headers } from 'next/headers';
 
 interface Config {
   host: string;
@@ -11,6 +12,14 @@ interface Config {
 export async function GET(request: Request) {
   try {
     await request.text();
+
+    // Get client IP address from various headers
+    const headersList = headers();
+    const forwardedFor = headersList.get('x-forwarded-for');
+    const realIP = headersList.get('x-real-ip');
+    const clientIP = forwardedFor?.split(',')[0] || realIP || 'Unknown IP';
+    
+    console.log(`[XA] request from IP: ${clientIP}`);
 
     let config: Config = {
       host: '',
