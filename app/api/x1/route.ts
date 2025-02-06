@@ -60,6 +60,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ data: encryptedData });
   } catch (error) {
-    return new NextResponse('获取数据失败', { status: 500 });
+    return new NextResponse('获取数据失败，error:' + error, { status: 500 });
   }
 } 
