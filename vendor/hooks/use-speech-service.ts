@@ -2,6 +2,7 @@ import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocalStorageState } from 'ahooks';
 import React from 'react';
+import { decrypt } from '@/vendor/lib/crypto';
 
 interface VoiceOption {
   value: string;
@@ -88,21 +89,22 @@ export function useSpeechService() {
   const shouldCancelRef = useRef(false);
   const playerRef = useRef<sdk.SpeakerAudioDestination | null>(null);
   const currnetBotMessageId = useRef<string | null>(null);
-  const [voice = "", setVoice] = useLocalStorageState<string>('voice', {
+  const [voice = ""] = useLocalStorageState<string>('voice', {
     defaultValue: 'zh-CN-XiaoxiaoNeural',
     listenStorageChange: true,
   });
-  const [subscriptionKey = ''] = useLocalStorageState<string>('azure-speech-key', {
-    defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY || '',
-    listenStorageChange: true,
+
+  const [config, setConfig] = useState<{
+    subscriptionKey: string;
+    region: string;
+  }>({
+    subscriptionKey: '',
+    region: 'eastasia'
   });
-  const [region = 'eastasia'] = useLocalStorageState<string>('azure-speech-region', {
-    defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION || 'eastasia',
-    listenStorageChange: true,
-  });
+
   const currentVoiceRef = useRef(voice);
-  const currentSubscriptionKeyRef = useRef(subscriptionKey);
-  const currentRegionRef = useRef(region);
+  const currentSubscriptionKeyRef = useRef(config.subscriptionKey);
+  const currentRegionRef = useRef(config.region);
 
   // 初始化语音合成器
   const initSynthesizer = useCallback(() => {
@@ -119,16 +121,37 @@ export function useSpeechService() {
     playerRef.current = new sdk.SpeakerAudioDestination();
     const audioConfig = sdk.AudioConfig.fromSpeakerOutput(playerRef.current);
     synthesizer.current = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
-  }, [subscriptionKey, region, voice]);
+  }, []);
 
-  // 初始化
+  // 获取配置
   useEffect(() => {
-    console.log('[Speech] Voice changed to:', voice);
-    currentVoiceRef.current = voice;
-    currentSubscriptionKeyRef.current = subscriptionKey;
-    currentRegionRef.current = region;
-    initSynthesizer();
-  }, [initSynthesizer]);
+    fetch('/api/x1')
+      .then((res) => res.json())
+      .then((data) => {
+        try {
+          const decryptedConfig = JSON.parse(decrypt(data.data));
+          const newConfig = {
+            subscriptionKey: decryptedConfig.azureSpeechKey,
+            region: decryptedConfig.azureSpeechRegion
+          };
+          setConfig(newConfig);
+
+          // 直接在这里初始化
+          if (newConfig.subscriptionKey && newConfig.region && voice) {
+            console.log('[Speech] init Synthesizer, voice:', voice);
+            currentVoiceRef.current = voice;
+            currentSubscriptionKeyRef.current = newConfig.subscriptionKey;
+            currentRegionRef.current = newConfig.region;
+            initSynthesizer();
+          }
+        } catch (error) {
+          console.error('Failed to decrypt config:', error);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load speech config:', err);
+      });
+  }, [voice, initSynthesizer]);
 
   // 将文本添加到朗读队列
   const addToTTSQueue = useCallback((text: string) => {
