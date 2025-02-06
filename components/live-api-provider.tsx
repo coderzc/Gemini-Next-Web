@@ -20,7 +20,7 @@ const LiveAPIProvider = ({ children, url: propUrl, apiKey: propApiKey }: Props) 
 
 	useEffect(() => {
 		// 获取配置
-		fetch('/api/x1')
+		fetch('/api/xa')
 			.then((res) => {
 				return res.json();
 			})

@@ -125,7 +125,7 @@ export function useSpeechService() {
 
   // 获取配置
   useEffect(() => {
-    fetch('/api/x1')
+    fetch('/api/xa')
       .then((res) => res.json())
       .then((data) => {
         try {
