@@ -20,17 +20,25 @@ const LiveAPIProvider = ({ children, url: propUrl, apiKey: propApiKey }: Props) 
 
 	useEffect(() => {
 		// 获取配置
-		console.log('Fetching config...');
 		fetch('/api/x1')
-			.then((res) => res.json())
+			.then((res) => {
+				// 显示服务器日志
+				const serverLogs = res.headers.get('X-Server-Logs');
+				if (serverLogs) {
+					console.log('Server Logs:', JSON.parse(serverLogs));
+				}
+				const debugInfo = res.headers.get('X-Debug-Info');
+				if (debugInfo) {
+					console.log('Server Debug Info:', JSON.parse(debugInfo));
+				}
+				return res.json();
+			})
 			.then((data) => {
-				console.log('Received config data:', data);
 				try {
 					if (!data || !data.data) {
 						throw new Error('Invalid response format');
 					}
 					const decryptedConfig = JSON.parse(decrypt(data.data));
-					console.log('Decrypted config:', decryptedConfig);
 					if (!decryptedConfig || !decryptedConfig.apiKey) {
 						throw new Error('Invalid config format');
 					}
