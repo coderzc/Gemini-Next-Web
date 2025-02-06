@@ -2,7 +2,6 @@
 
 import { FC, ReactNode, useEffect, useState } from 'react';
 import { Input, Button, Form, message } from 'antd';
-import { useRouter } from 'next/navigation';
 
 interface AuthCheckProps {
   children: ReactNode;
@@ -11,7 +10,6 @@ interface AuthCheckProps {
 const AuthCheck: FC<AuthCheckProps> = ({ children }) => {
   const [isAuthed, setIsAuthed] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const auth = localStorage.getItem('auth');
@@ -38,7 +36,7 @@ const AuthCheck: FC<AuthCheckProps> = ({ children }) => {
       } else {
         message.error('密码错误');
       }
-    } catch (error) {
+    } catch {
       message.error('验证失败，请重试');
     }
   };

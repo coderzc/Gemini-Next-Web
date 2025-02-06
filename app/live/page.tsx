@@ -273,6 +273,7 @@ const LivePage: React.FC = () => {
 			? { parts: [{ text: prompt }] }
 			: undefined;
 		setConfig({ ...config, generationConfig, systemInstruction });
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [connected, prompt, model, nativeVoice, audioMode]);
 
 	const panelStyle: React.CSSProperties = {

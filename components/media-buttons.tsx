@@ -199,7 +199,8 @@ function MediaButtons({
 		return () => {
 			navigator.mediaDevices.removeEventListener('devicechange', getDevices);
 		};
-	}, []);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedDeviceId]);
 
 	return (
 		<div className='control-tray'>

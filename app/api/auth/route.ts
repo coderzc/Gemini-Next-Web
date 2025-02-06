@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     return new NextResponse('密码错误', { status: 401 });
-  } catch (error) {
+  } catch {
     return new NextResponse('验证失败', { status: 500 });
   }
 } 
