@@ -10,15 +10,7 @@ interface Config {
 
 export async function GET(request: Request) {
   try {
-    // 使用 Response header 输出日志
-    const logs: string[] = [];
-    const log = (msg: string) => {
-      logs.push(msg);
-      console.log(msg); // 本地开发时仍然可以看到
-    };
-
     await request.text();
-
 
     let config: Config = {
       host: '',
@@ -47,7 +39,7 @@ export async function GET(request: Request) {
       };
     }
 
-    log('Config prepared, gemini host:' + config.host);
+    console.log('Config prepared, gemini host:' + config.host);
 
     // 加密配置数据
     const encryptedData = encrypt(JSON.stringify(config));

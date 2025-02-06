@@ -1,17 +1,11 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-    // 使用 Response header 输出日志
-    const logs: string[] = [];
-    const log = (msg: string) => {
-      logs.push(msg);
-      console.log(msg); // 本地开发时仍然可以看到
-    };
   try {
     const { password } = await req.json();
     const accessCode = process.env.ACCESS_CODE;
 
-    log('[Auth] auth request' + req.headers);
+    console.log('[Auth] auth request' + req.headers);
 
     if (!accessCode) {
       return new NextResponse('未配置访问密码', { status: 500 });
