@@ -20,14 +20,17 @@ const LiveAPIProvider = ({ children, url: propUrl, apiKey: propApiKey }: Props) 
 
 	useEffect(() => {
 		// 获取配置
+		console.log('Fetching config...');
 		fetch('/api/x1')
 			.then((res) => res.json())
 			.then((data) => {
+				console.log('Received config data:', data);
 				try {
 					if (!data || !data.data) {
 						throw new Error('Invalid response format');
 					}
 					const decryptedConfig = JSON.parse(decrypt(data.data));
+					console.log('Decrypted config:', decryptedConfig);
 					if (!decryptedConfig || !decryptedConfig.apiKey) {
 						throw new Error('Invalid config format');
 					}
