@@ -6,18 +6,17 @@
 
 English / [简体中文](https://github.com/coderzc/Gemini-Next-Web/blob/main/README-CN.md)
 
-<img width="1909" alt="image" src="https://github.com/user-attachments/assets/68ab0d66-57bb-4594-8009-92fe6c50244d" />
+<img width="1915" alt="image" src="https://github.com/user-attachments/assets/407ac42f-424d-4e29-a344-22ac09abd26c" />
+
 
 
 </div>
 
 **On the basis of the original project, some features have been extended:**
 
-1. **Add page configuration Gemni API KEY**
+1. **Add proxy address configurable**
 
-2. **Add proxy address configurable**
-
-3. **Add TTS to Chinese voice support, select TTS mode, the native voice does not support Chinese, use Microsoft TTS to realize Chinese support. [How to get the Azure TTS API-KEY](https://learn.microsoft.com/zh-cn/azure/ai-services/speech-service/get-started-speech-to-text?tabs=macos%2Cterminal&pivots=programming-language-javascript#prerequisites)**
+2. **Add TTS to Chinese voice support, select TTS mode, the native voice does not support Chinese, use Microsoft TTS to realize Chinese support. [How to get the Azure TTS API-KEY](https://learn.microsoft.com/zh-cn/azure/ai-services/speech-service/get-started-speech-to-text?tabs=macos%2Cterminal&pivots=programming-language-javascript#prerequisites)**
 
 
 
