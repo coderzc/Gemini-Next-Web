@@ -203,12 +203,12 @@ const LivePage: React.FC = () => {
 	const [nativeVoice, setNativeVoice] = useLocalStorageState('nativeVoice', {
 		defaultValue: 'Puck',
 	});
-	const [azureKey, setAzureKey] = useLocalStorageState('azure-speech-key', {
-		defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY || '',
-	});
-	const [azureRegion, setAzureRegion] = useLocalStorageState('azure-speech-region', {
-		defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION || 'eastasia',
-	});
+	// const [azureKey, setAzureKey] = useLocalStorageState('azure-speech-key', {
+	// 	defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_KEY || '',
+	// });
+	// const [azureRegion, setAzureRegion] = useLocalStorageState('azure-speech-region', {
+	// 	defaultValue: process.env.NEXT_PUBLIC_AZURE_SPEECH_REGION || 'eastasia',
+	// });
 
 	const [tools, setTools] = useLocalStorageState<ToolsState>('tools', {
 		defaultValue: {
@@ -478,7 +478,7 @@ const LivePage: React.FC = () => {
 							]}
 						/>
 					</FieldItem>
-					{audioMode === 'text' && (
+					{/* {audioMode === 'text' && (
 					<FieldItem label='Azure Speech Key'>
 					
 						<Input.Password
@@ -498,7 +498,7 @@ const LivePage: React.FC = () => {
 							placeholder="e.g. eastus"
 						/>
 					</FieldItem>
-					)}
+					)} */}
 					{audioMode === 'text' && (
 						<FieldItem label='Voice'>
 							<Select

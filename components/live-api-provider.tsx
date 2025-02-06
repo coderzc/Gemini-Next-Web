@@ -7,7 +7,7 @@ type Props = {
 };
 
 const LiveAPIProvider = ({ children, url: propUrl, apiKey: propApiKey }: Props) => {
-	const host = 'generativelanguage.googleapis.com';
+	const host = process.env.NEXT_PUBLIC_GEMINI_HOST || 'generativelanguage.googleapis.com';
 	const defaultUri = `wss://${host}/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent`;
 
 	const API_KEY = (process.env.NEXT_PUBLIC_GEMINI_API_KEY as string) || '';

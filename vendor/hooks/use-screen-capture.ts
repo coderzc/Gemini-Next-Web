@@ -40,13 +40,10 @@ export function useScreenCapture(): UseMediaStreamResult {
     }
   }, [stream]);
 
-  const start = async () => {
-    // const controller = new CaptureController();
-    // controller.setFocusBehavior("no-focus-change");
-    const mediaStream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
-      // controller
-    });
+  const start = async (constraints?: MediaStreamConstraints) => {
+    const mediaStream = await navigator.mediaDevices.getDisplayMedia(
+      constraints || { video: true }
+    );
     setStream(mediaStream);
     setIsStreaming(true);
     return mediaStream;

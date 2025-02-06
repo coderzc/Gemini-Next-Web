@@ -80,7 +80,7 @@ const MenuContent: React.FC<{
 						title={connected ? "Please disconnect first to modify settings" : ""}
 						placement="right"
 					>
-						<div>
+						{/* <div>
 							<Form.Item
 								label="Host"
 								name="host"
@@ -105,7 +105,7 @@ const MenuContent: React.FC<{
 									disabled={connected}
 								/>
 							</Form.Item>
-						</div>
+						</div> */}
 					</Tooltip>
 					<Form.Item>
 						<Button
@@ -117,9 +117,7 @@ const MenuContent: React.FC<{
 									disconnect();
 								} else {
 									form.validateFields().then(() => {
-										if (host && apiKey) {
-											connect();
-										}
+										connect();
 									});
 								}
 							}}
@@ -150,10 +148,10 @@ const GlobalLayout: React.FC<{
 	const router = useRouter();
 	const pathname = usePathname();
 	const [host, setHost] = useLocalStorageState<string>('gemini-host', {
-		defaultValue: process.env.NEXT_PUBLIC_GEMINI_HOST || 'generativelanguage.googleapis.com'
+		defaultValue: ''
 	});
 	const [apiKey, setApiKey] = useLocalStorageState<string>('gemini-api-key', {
-		defaultValue: process.env.NEXT_PUBLIC_GEMINI_API_KEY || ''
+		defaultValue: ''
 	});
 
 	useEffect(() => {
