@@ -19,16 +19,6 @@ export async function GET(request: Request) {
 
     await request.text();
 
-    // 获取所有环境变量
-    let envStr = '';
-    try {
-      // @ts-ignore
-      envStr = JSON.stringify(typeof Deno !== 'undefined' ? Deno.env.toObject() : process.env);
-    } catch (error: any) {
-      envStr = 'Failed to get env: ' + (error?.message || String(error));
-    }
-
-    log('envStr:' + envStr);
 
     let config: Config = {
       host: '',
